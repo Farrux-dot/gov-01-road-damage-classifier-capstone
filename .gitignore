@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+.venv/
+data/raw/
+models/*.keras
+reports/*.png
+reports/*.json
+reports/*.csv
+.ipynb_checkpoints/
