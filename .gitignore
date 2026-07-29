@@ -7,3 +7,4 @@ reports/*.png
 reports/*.json
 reports/*.csv
 .ipynb_checkpoints/
+work/
