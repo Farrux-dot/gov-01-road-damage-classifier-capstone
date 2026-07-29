@@ -1,0 +1,4 @@
+split,rows,normal_count,pothole_count,pothole_rate,split_method,seed,notes
+train,860,236,624,0.725581,stratified exact-hash-deduplicated,42,Raw supplied test folder excluded because it overlaps with train/validation.
+validation,185,51,134,0.724324,stratified exact-hash-deduplicated,42,Raw supplied test folder excluded because it overlaps with train/validation.
+test,183,50,133,0.726776,stratified exact-hash-deduplicated,42,Raw supplied test folder excluded because it overlaps with train/validation.

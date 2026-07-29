@@ -22,9 +22,17 @@ Classify one road image as `Normal` or `Pothole` to support municipal report tri
 
 ## Split and leakage decision
 
-The provided split is **not model-ready**. The project will not train or tune a model until a clean split is rebuilt from unique images. The supplied test folder will not be used because all 136 test files overlap with training and/or validation data.
+The provided split was **not model-ready**, so the supplied flat test folder was excluded. A clean split was rebuilt from 1,228 unique image hashes: 337 `Normal` and 891 `Pothole`.
 
-The clean labeled pool contains 1,228 unique image hashes: 337 `Normal` and 891 `Pothole`. The planned scheme is a fixed-seed, stratified 70%/15%/15% train/validation/test split. A clean split must keep every exact duplicate in one split only. If source or scene-group metadata becomes available, it must also stay within one split. The actual resulting counts and zero-overlap check will be written to `docs/split_summary.csv` after the split is created.
+The derived split uses fixed-seed (`42`), stratified 70%/15%/15% splitting. `src/build_clean_split.py` copies only unique labeled images into `data/processed/clean_split/` and then verifies zero exact-hash overlap across splits.
+
+| Derived split | Total | Normal | Pothole |
+|---|---:|---:|---:|
+| Train | 860 | 236 | 624 |
+| Validation | 185 | 51 | 134 |
+| Test | 183 | 50 | 133 |
+
+The zero-overlap verification passed. The reproducible evidence is in `docs/split_summary.csv` and `docs/clean_image_manifest.csv`; the raw and derived image folders remain excluded from Git.
 
 ## Preprocessing boundary
 
@@ -32,10 +40,10 @@ Images will be resized and normalized consistently. Random augmentation, if used
 
 ## Gate status
 
-**RED — repair required before modeling.**
+**YELLOW — clean split is ready; finish the named preprocessing implementation before model comparison expands.**
 
 ### Required next actions
 
-1. Build a clean split from unique labeled images; do not use the supplied flat test folder.
-2. Record the resulting clean split counts and zero-overlap check.
+1. Create the named Colab preprocessing implementation and its `docs/preprocessing_manifest.json` evidence.
+2. Confirm that random augmentation will run only in the training loader.
 3. Update this document and `PROJECT_STATUS.md`, then commit the verified Data Gate evidence.

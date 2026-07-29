@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 .venv/
 data/raw/
+data/processed/
 models/*.keras
 reports/*.png
 reports/*.json

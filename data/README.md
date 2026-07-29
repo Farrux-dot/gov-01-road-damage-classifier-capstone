@@ -38,4 +38,7 @@ The model detects pothole presence only. It does not assess danger, physical siz
 
 - `docs/data_audit.md` records the audit findings, risks, and decisions.
 - `docs/image_manifest.csv` lists every readable image path, split, observed label source, and SHA-256 hash.
+- `docs/clean_image_manifest.csv` records the final derived split and supports the zero-overlap check.
+- `docs/split_summary.csv` records the final class counts and split ratios.
 - `src/audit_dataset.py` is the reusable audit implementation.
+- `src/build_clean_split.py` is the reproducible clean-split implementation.
