@@ -6,6 +6,14 @@ The raw images come from the [Kaggle Pothole Detection Dataset](https://www.kagg
 
 Download the ZIP from Kaggle, extract it to `data/raw/`, and keep the extracted files out of Git. The raw data is ignored because it is large and externally sourced.
 
+### Download instructions
+
+1. Open the Kaggle dataset link above and sign in if prompted.
+2. Click **Download** to save the ZIP archive.
+3. Extract the archive into `data/raw/` in this repository.
+4. The downloaded archive should be available under `data/raw/Dataset/`.
+5. Do not commit the ZIP archive or raw image folders to GitHub.
+
 ## What one sample represents
 
 One sample is one 64 x 64 JPEG road image. The supervised target is whether the image is in the `Normal` or `Pothole` class.
