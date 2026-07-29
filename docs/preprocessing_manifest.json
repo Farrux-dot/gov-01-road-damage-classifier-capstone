@@ -1,0 +1,25 @@
+{
+  "project": "GOV-01 Road Damage Image Classifier",
+  "implementation_path": "notebooks/GOV_01_data_preprocessing.ipynb",
+  "input_path": "data/processed/clean_split",
+  "class_names": ["Normal", "Pothole"],
+  "image_size": [224, 224],
+  "color_mode": "rgb",
+  "label_mode": "binary",
+  "split_boundary": {
+    "train": "Training images only; shuffled with seed 42; random augmentation allowed.",
+    "validation": "No random augmentation; never used to fit preprocessing.",
+    "test": "No random augmentation; held out for final evaluation only."
+  },
+  "training_augmentation": [
+    "RandomFlip(horizontal)",
+    "RandomRotation(0.05)",
+    "RandomZoom(0.10)"
+  ],
+  "normalization": {
+    "baseline_cnn": "Rescaling(1/255) inside the baseline model.",
+    "mobilenetv2": "mobilenet_v2.preprocess_input inside the transfer-learning model."
+  },
+  "fit_boundary": "No learned preprocessing statistics are fitted on validation or test images.",
+  "status": "Implementation prepared; run and verify in the Colab runtime before modeling."
+}

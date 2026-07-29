@@ -36,14 +36,16 @@ The zero-overlap verification passed. The reproducible evidence is in `docs/spli
 
 ## Preprocessing boundary
 
-Images will be resized and normalized consistently. Random augmentation, if used, will be applied to training images only. Validation and test images will be transformed without random augmentation. The final preprocessing implementation must be named in the Colab notebook before model training begins.
+The named implementation is `notebooks/GOV_01_data_preprocessing.ipynb`, with configuration recorded in `docs/preprocessing_manifest.json`. Images are resized to 224 x 224 RGB. Random flip, rotation, and zoom are applied only to training images. Validation and test images receive no random augmentation.
+
+Pixel scaling is model-specific: the baseline CNN will use `Rescaling(1/255)` inside the model, while MobileNetV2 will use its own `preprocess_input` inside the transfer-learning model. Neither approach fits learned preprocessing statistics from validation or test images.
 
 ## Gate status
 
-**YELLOW — clean split is ready; finish the named preprocessing implementation before model comparison expands.**
+**YELLOW — clean split and preprocessing implementation are prepared; execute and verify the notebook in Colab before model comparison expands.**
 
 ### Required next actions
 
-1. Create the named Colab preprocessing implementation and its `docs/preprocessing_manifest.json` evidence.
-2. Confirm that random augmentation will run only in the training loader.
+1. Run the preprocessing notebook against the clean split in Colab and verify the loaders.
+2. Confirm that random augmentation runs only in the training loader.
 3. Update this document and `PROJECT_STATUS.md`, then commit the verified Data Gate evidence.
