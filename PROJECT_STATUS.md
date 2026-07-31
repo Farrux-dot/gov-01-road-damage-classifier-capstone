@@ -6,7 +6,7 @@ GOV-01 Road Damage Image Classifier
 
 ## Current stage
 
-Data Audit (Module 8) — Yellow
+Model Gate (Module 8) — Yellow
 
 ## Completed
 
@@ -19,15 +19,17 @@ Data Audit (Module 8) — Yellow
 - Added the named image preprocessing notebook and manifest with training-only augmentation.
 - Ran the preprocessing notebook in Google Colab; retain its output or a screenshot as supporting evidence.
 - Added a documented modeling-readiness plan before model training.
+- Added the first Model Gate notebook: a naive baseline and compact CNN baseline evaluated on validation data only.
+- Added initial Model Gate evidence and artifact documentation; no model result has been claimed yet.
 
 ## Current task
 
-Prepare the compact CNN baseline experiment without touching the held-out clean test split.
+Run the naive and compact-CNN baselines in Google Colab without touching the held-out clean test split.
 
 ## Next
 
 - Keep the Colab preprocessing evidence with the project records.
-- Create and run a baseline-CNN-only modeling notebook in Colab.
+- Run `notebooks/GOV_01_model_gate.ipynb` in Colab and save its validation evidence.
 - Compare later approaches on validation data; use the clean test split once for the final selected model.
 
 ## Known problems / blockers

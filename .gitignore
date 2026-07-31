@@ -7,5 +7,10 @@ models/*.keras
 reports/*.png
 reports/*.json
 reports/*.csv
+!reports/experiment_record.csv
+!reports/*_learning_curve.png
+!reports/*_validation_confusion_matrix.png
+artifacts/*.keras
+artifacts/*.h5
 .ipynb_checkpoints/
 work/
