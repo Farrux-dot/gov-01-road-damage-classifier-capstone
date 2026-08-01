@@ -31,6 +31,7 @@
 | `naive_majority_v1` | The majority-class rule establishes the minimum reference result. | Naive prediction rule | Split, validation labels, macro F1 | Macro F1 `0.420063`; accuracy `0.724324` | Reference floor established |
 | `cnn_unweighted_v1` | A compact CNN can learn road-image patterns beyond the majority rule. | Simple CNN model | Split, seed 42, image size, augmentation, validation metric | Macro F1 `0.673898`; accuracy `0.789189`; ROC-AUC `0.867574` | Beats the naive baseline but is weak on Normal recall |
 | `cnn_class_weighted_v2` | Class weights improve Normal recall and Macro F1 without changing the CNN architecture. | Class weights only | Split, seed 42, image size, architecture, augmentation, optimizer, validation metric | Macro F1 `0.775295`; accuracy `0.821622`; Normal recall `0.666667` | Current validation leader; record the Pothole-recall trade-off |
+| `mobilenetv2_frozen_v3` | Frozen ImageNet MobileNetV2 improves validation Macro F1 over the class-weighted CNN. | Model family and required ImageNet preprocessing | Split, seed 42, image size, augmentation, class weights, validation metric | Not run yet | Pending Colab run |
 
 ## 5. Run comparison
 
