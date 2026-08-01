@@ -23,18 +23,19 @@ Model Gate (Module 8) — Yellow
 - Added initial Model Gate evidence and artifact documentation; no model result has been claimed yet.
 - Ran the naive and compact-CNN baselines in Colab and saved the real validation metrics and visual evidence.
 - Ran the class-weighted CNN experiment and improved validation Macro F1 from `0.673898` to `0.775295`.
+- Ran frozen MobileNetV2 transfer learning and selected it as the validation candidate with Macro F1 `0.915463`.
 
 ## Current task
 
-Prepare the frozen MobileNetV2 transfer-learning comparison using the same validation split and class weights.
+Evaluate the frozen MobileNetV2 candidate once on the clean protected test split, then save and reload its complete inference artifact.
 
 ## Next
 
 - Keep the Colab preprocessing evidence with the project records.
-- Compare the class-weighted CNN and frozen MobileNetV2 using validation Macro F1, class-level recall, and error patterns.
-- Use the clean test split once only after a final candidate is selected.
+- Evaluate the already locked MobileNetV2 candidate on the clean test split once only.
+- Save the model, image-processing rules, class mapping, and a reload-proof prediction.
 
 ## Known problems / blockers
 
 - The supplied test folder remains excluded because it contains duplicate images, but the derived clean split has zero exact-hash overlap.
-- The class-weighted CNN improves Normal recall but increases Pothole-to-Normal errors; this trade-off must be compared with transfer learning.
+- The selected MobileNetV2 candidate has not been evaluated on the clean test split or saved as a reloadable inference artifact yet.
