@@ -26,16 +26,17 @@ Model Gate (Module 8) — Yellow
 - Ran MobileNetV2 v3, then found that its validation images were incorrectly augmented; its results are documented but invalid for selection.
 - Re-ran the corrected frozen MobileNetV2 v4 with random augmentation restricted to training images and recorded valid validation evidence.
 - Locked `mobilenetv2_frozen_v4` as the candidate after it achieved validation Macro F1 `0.933126`.
+- Evaluated the locked V4 candidate once on the protected clean test split, achieving Macro F1 `0.939901` and accuracy `0.950820`; no tuning followed test access.
 
 ## Current task
 
-Evaluate the locked `mobilenetv2_frozen_v4` candidate once on the protected clean test split.
+Save a complete V4 inference artifact and demonstrate that it reloads correctly in a fresh process.
 
 ## Next
 
 - Keep the Colab preprocessing evidence with the project records.
-- Preserve the V4 validation evidence and its locked configuration.
-- Evaluate the locked candidate once on the clean protected test split; do not tune the model after seeing the test result.
+- Preserve the final test result; do not tune or retrain V4 after test access.
+- Save the model, configuration, and loading instructions, then perform a reload proof.
 
 ## Known problems / blockers
 

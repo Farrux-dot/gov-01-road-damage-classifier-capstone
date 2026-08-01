@@ -51,19 +51,29 @@
 
 - **Protected test used for candidate selection or tuning:** No.
 - **Candidate locked before final test evaluation:** Yes, `mobilenetv2_frozen_v4` is locked using validation evidence only.
-- **Final test access:** Not performed.
+- **Final test access:** Performed once after candidate lock, with no tuning or retraining afterward.
 
 ## 8. Final evaluation
 
-- Not performed. The test split remains protected.
+- **Run ID:** `mobilenetv2_frozen_v4`.
+- **Test images:** 183 unseen images: 50 Normal and 133 Pothole.
+- **Accuracy:** `0.950820`.
+- **Macro F1:** `0.939901`.
+- **Pothole precision / recall:** `0.984375` / `0.947368`.
+- **Normal recall:** `0.960000`.
+- **ROC-AUC:** `0.993684`.
+- **Confusion matrix:** 48 Normal correctly predicted as Normal; 2 Normal predicted as Pothole; 7 Pothole predicted as Normal; 126 Pothole correctly predicted as Pothole.
+- **Evidence:** `reports/mobilenetv2_frozen_v4_protected_test_confusion_matrix.png` and the final Colab output record.
+- **Post-test rule:** These results are reported as final. The model was not tuned, retrained, or re-selected after test access.
 
 ## 9. Error / failure analysis
 
 - **Unweighted CNN errors:** 33 Normal images were predicted as Pothole; 6 Pothole images were predicted as Normal.
 - **Class-weighted CNN errors:** 17 Normal images were predicted as Pothole; 16 Pothole images were predicted as Normal.
-- **Corrected frozen MobileNetV2 v4 errors:** 4 Normal images were predicted as Pothole; 6 Pothole images were predicted as Normal.
+- **Corrected frozen MobileNetV2 v4 validation errors:** 4 Normal images were predicted as Pothole; 6 Pothole images were predicted as Normal.
+- **Final protected-test errors:** 2 Normal images were predicted as Pothole; 7 Pothole images were predicted as Normal.
 - **Frozen MobileNetV2 v3 errors:** Not used for decision-making because validation images were randomly augmented in error.
-- **Impact:** V4 reduces both kinds of validation error, but six missed potholes show that the model remains triage support only and must retain human review.
+- **Impact:** The final test supports strong generalization, but seven missed potholes are higher-risk errors. The model remains triage support only: a staff member must review negative predictions before dismissing a report.
 
 ## 10. Complete inference artifact
 
@@ -80,6 +90,6 @@
 
 ## 13. Next action and milestone commit
 
-- **Next evidence-based action:** Evaluate locked `mobilenetv2_frozen_v4` once on the protected clean test split and report the result without further tuning.
-- **Model Gate status:** YELLOW - candidate selection is complete and the protected test remains untouched.
-- **Milestone commit:** Record candidate selection and validation evidence before the protected test evaluation.
+- **Next evidence-based action:** Save the locked V4 inference artifact, its configuration, and a reload proof. Do not change the model after the final test.
+- **Model Gate status:** YELLOW - final test evaluation is complete; artifact and reload evidence remain.
+- **Milestone commit:** Record final protected-test evidence before creating the inference artifact.
