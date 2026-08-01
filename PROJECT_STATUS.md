@@ -22,18 +22,19 @@ Model Gate (Module 8) — Yellow
 - Added the first Model Gate notebook: a naive baseline and compact CNN baseline evaluated on validation data only.
 - Added initial Model Gate evidence and artifact documentation; no model result has been claimed yet.
 - Ran the naive and compact-CNN baselines in Colab and saved the real validation metrics and visual evidence.
+- Ran the class-weighted CNN experiment and improved validation Macro F1 from `0.673898` to `0.775295`.
 
 ## Current task
 
-Implement the class-weighted CNN experiment using the same training and validation split.
+Prepare the frozen MobileNetV2 transfer-learning comparison using the same validation split and class weights.
 
 ## Next
 
 - Keep the Colab preprocessing evidence with the project records.
-- Compare the unweighted and class-weighted CNN using validation Macro F1 and Normal recall.
-- Compare later approaches on validation data; use the clean test split once for the final selected model.
+- Compare the class-weighted CNN and frozen MobileNetV2 using validation Macro F1, class-level recall, and error patterns.
+- Use the clean test split once only after a final candidate is selected.
 
 ## Known problems / blockers
 
 - The supplied test folder remains excluded because it contains duplicate images, but the derived clean split has zero exact-hash overlap.
-- The unweighted CNN is weak at identifying Normal images (validation recall `0.352941`), so it is not a final candidate.
+- The class-weighted CNN improves Normal recall but increases Pothole-to-Normal errors; this trade-off must be compared with transfer learning.

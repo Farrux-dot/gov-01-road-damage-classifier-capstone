@@ -30,21 +30,22 @@
 |---|---|---|---|---|---|
 | `naive_majority_v1` | The majority-class rule establishes the minimum reference result. | Naive prediction rule | Split, validation labels, macro F1 | Macro F1 `0.420063`; accuracy `0.724324` | Reference floor established |
 | `cnn_unweighted_v1` | A compact CNN can learn road-image patterns beyond the majority rule. | Simple CNN model | Split, seed 42, image size, augmentation, validation metric | Macro F1 `0.673898`; accuracy `0.789189`; ROC-AUC `0.867574` | Beats the naive baseline but is weak on Normal recall |
-| `cnn_class_weighted_v2` | Class weights improve Normal recall and Macro F1 without changing the CNN architecture. | Class weights only | Split, seed 42, image size, architecture, augmentation, optimizer, validation metric | Not run yet | Pending Colab run |
+| `cnn_class_weighted_v2` | Class weights improve Normal recall and Macro F1 without changing the CNN architecture. | Class weights only | Split, seed 42, image size, architecture, augmentation, optimizer, validation metric | Macro F1 `0.775295`; accuracy `0.821622`; Normal recall `0.666667` | Current validation leader; record the Pothole-recall trade-off |
 
 ## 5. Run comparison
 
 - **Tracking method:** Repository-visible `reports/experiment_record.csv`.
 - **Same split and metric confirmed:** Yes; the notebook uses the clean split, seed 42, and validation macro F1.
 - **Important failed or neutral experiment:** The unweighted CNN has Normal recall `0.352941`, so it misses many Normal images.
-- **What this taught:** A class-weighted CNN is the next justified experiment; only the training loss weighting should change.
+- **What this taught:** Class weighting improved Normal recall to `0.666667` and Macro F1 to `0.775295`; it should remain enabled for the transfer-learning comparison.
 
 ## 6. Selected candidate or current blocker
 
-- **Selected run ID:** `cnn_unweighted_v1` is the current baseline leader only; it is not the final candidate.
-- **Compared directly with baseline:** Yes. Macro F1 improved by `0.253835` over the naive baseline.
-- **Current limitation:** Normal recall is only `0.352941` (18 of 51 Normal validation images).
-- **Next action:** Run a class-weighted CNN experiment on the same training and validation split.
+- **Selected run ID:** `cnn_class_weighted_v2` is the current validation leader only; it is not the final candidate.
+- **Compared directly with unweighted CNN:** Yes. Macro F1 improved by `0.101397`, and Normal recall improved from `0.352941` to `0.666667`.
+- **Decisive trade-off:** Pothole recall declined from `0.955224` to `0.880597`, so 16 Pothole images were predicted as Normal rather than 6. The overall Macro F1 and accuracy improved.
+- **Current limitation:** The candidate has only validation evidence; the protected test split remains unused.
+- **Next action:** Compare with a frozen MobileNetV2 transfer-learning model using the same class weights and validation protocol.
 
 ## 7. Protected test status
 
@@ -58,9 +59,10 @@
 
 ## 9. Error / failure analysis
 
-- **Validation error evidence:** 33 Normal images were predicted as Pothole; 6 Pothole images were predicted as Normal.
-- **Likely cause:** The training data contains more Pothole images than Normal images.
-- **Impact:** The system would send many Normal-road reports for unnecessary pothole review. The model is triage support only and must retain human review.
+- **Unweighted CNN errors:** 33 Normal images were predicted as Pothole; 6 Pothole images were predicted as Normal.
+- **Class-weighted CNN errors:** 17 Normal images were predicted as Pothole; 16 Pothole images were predicted as Normal.
+- **Likely cause:** Class weighting moved the decision boundary toward the smaller Normal class.
+- **Impact:** The class-weighted model sends fewer Normal-road reports for unnecessary pothole review, but it misses more Pothole images. The model is triage support only and must retain human review.
 
 ## 10. Complete inference artifact
 
@@ -77,6 +79,6 @@
 
 ## 13. Next action and milestone commit
 
-- **Next evidence-based action:** Implement and run the class-weighted CNN experiment on the same validation protocol.
-- **Model Gate status:** YELLOW - baseline evidence is complete, but a fairer Normal-class result and further controlled comparison are required.
+- **Next evidence-based action:** Implement and run a frozen MobileNetV2 transfer-learning comparison using the same validation protocol and class weights.
+- **Model Gate status:** YELLOW - class weighting improved validation balance, but transfer-learning comparison, final candidate selection, protected testing, and reload proof remain.
 - **Milestone commit:** To be created after the notebook structure is checked.
