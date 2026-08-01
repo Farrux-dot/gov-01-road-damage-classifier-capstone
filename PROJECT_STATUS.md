@@ -23,19 +23,19 @@ Model Gate (Module 8) — Yellow
 - Added initial Model Gate evidence and artifact documentation; no model result has been claimed yet.
 - Ran the naive and compact-CNN baselines in Colab and saved the real validation metrics and visual evidence.
 - Ran the class-weighted CNN experiment and improved validation Macro F1 from `0.673898` to `0.775295`.
-- Ran frozen MobileNetV2 transfer learning and selected it as the validation candidate with Macro F1 `0.915463`.
+- Ran MobileNetV2 v3, then found that its validation images were incorrectly augmented; its results are documented but invalid for selection.
 
 ## Current task
 
-Evaluate the frozen MobileNetV2 candidate once on the clean protected test split, then save and reload its complete inference artifact.
+Repair and rerun the frozen MobileNetV2 experiment with augmentation applied only to training images.
 
 ## Next
 
 - Keep the Colab preprocessing evidence with the project records.
-- Evaluate the already locked MobileNetV2 candidate on the clean test split once only.
-- Save the model, image-processing rules, class mapping, and a reload-proof prediction.
+- Select a candidate only after the corrected MobileNetV2 v4 validation result is reviewed.
+- Keep the clean test split protected until candidate selection is valid again.
 
 ## Known problems / blockers
 
 - The supplied test folder remains excluded because it contains duplicate images, but the derived clean split has zero exact-hash overlap.
-- The selected MobileNetV2 candidate has not been evaluated on the clean test split or saved as a reloadable inference artifact yet.
+- MobileNetV2 v3 applied random augmentation during validation inference. Do not use its metrics for selection or testing; rerun corrected v4 first.

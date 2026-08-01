@@ -31,28 +31,26 @@
 | `naive_majority_v1` | The majority-class rule establishes the minimum reference result. | Naive prediction rule | Split, validation labels, macro F1 | Macro F1 `0.420063`; accuracy `0.724324` | Reference floor established |
 | `cnn_unweighted_v1` | A compact CNN can learn road-image patterns beyond the majority rule. | Simple CNN model | Split, seed 42, image size, augmentation, validation metric | Macro F1 `0.673898`; accuracy `0.789189`; ROC-AUC `0.867574` | Beats the naive baseline but is weak on Normal recall |
 | `cnn_class_weighted_v2` | Class weights improve Normal recall and Macro F1 without changing the CNN architecture. | Class weights only | Split, seed 42, image size, architecture, augmentation, optimizer, validation metric | Macro F1 `0.775295`; accuracy `0.821622`; Normal recall `0.666667` | Current validation leader; record the Pothole-recall trade-off |
-| `mobilenetv2_frozen_v3` | Frozen ImageNet MobileNetV2 improves validation Macro F1 over the class-weighted CNN. | Model family and required ImageNet preprocessing | Split, seed 42, image size, augmentation, class weights, validation metric | Macro F1 `0.915463`; accuracy `0.929730`; ROC-AUC `0.983611` | Selected candidate using validation evidence only |
+| `mobilenetv2_frozen_v3` | Frozen ImageNet MobileNetV2 experiment. | Invalid preprocessing boundary | Split and class weights | Results recorded but invalid | Random augmentation was applied during validation; do not use for selection |
+| `mobilenetv2_frozen_v4` | Corrected frozen MobileNetV2 improves validation Macro F1 with training-only augmentation. | Repair: remove augmentation from model inference path | Split, seed 42, image size, class weights, validation metric | Not run yet | Required correction before candidate selection |
 
 ## 5. Run comparison
 
 - **Tracking method:** Repository-visible `reports/experiment_record.csv`.
 - **Same split and metric confirmed:** Yes; the notebook uses the clean split, seed 42, and validation macro F1.
 - **Important failed or neutral experiment:** The unweighted CNN has Normal recall `0.352941`, so it misses many Normal images.
-- **What this taught:** Class weighting improved Normal recall to `0.666667`; frozen MobileNetV2 then improved Macro F1 to `0.915463` with the same class weights.
+- **What this taught:** The first MobileNetV2 run is invalid because random augmentation reached validation inference. The corrected v4 run must be completed before judging transfer learning.
 
 ## 6. Selected candidate or current blocker
 
-- **Selected run ID:** `mobilenetv2_frozen_v3`.
-- **Compared directly with class-weighted CNN:** Yes. Macro F1 improved by `0.140168`, accuracy improved by `0.108108`, and Normal recall improved from `0.666667` to `0.941176`.
-- **Decisive trade-off:** MobileNetV2 has the best validation Macro F1, the best class-level recall balance, and the best ROC-AUC. Its total training time was about 233 seconds longer because it ran all 20 epochs.
-- **Rejected alternative:** `cnn_class_weighted_v2` was rejected as the final candidate because its validation Macro F1 and Normal recall were lower.
-- **Current limitation:** The candidate has only validation evidence; the protected test split remains unused.
-- **Next action:** Freeze the selected candidate and evaluate it once on the clean protected test split.
+- **Selected run ID:** `BLOCKED` until the corrected v4 validation result exists.
+- **Current limitation:** `mobilenetv2_frozen_v3` is invalid for selection because augmentation was applied during validation inference.
+- **Next action:** Run corrected `mobilenetv2_frozen_v4`, then select a candidate using valid validation evidence.
 
 ## 7. Protected test status
 
 - **Protected test used for candidate selection or tuning:** No.
-- **Candidate locked before final test evaluation:** Yes. `mobilenetv2_frozen_v3` was selected using validation evidence only.
+- **Candidate locked before final test evaluation:** No valid candidate is locked while the corrected v4 transfer-learning run is pending.
 - **Final test access:** Not performed.
 
 ## 8. Final evaluation
@@ -63,9 +61,8 @@
 
 - **Unweighted CNN errors:** 33 Normal images were predicted as Pothole; 6 Pothole images were predicted as Normal.
 - **Class-weighted CNN errors:** 17 Normal images were predicted as Pothole; 16 Pothole images were predicted as Normal.
-- **Frozen MobileNetV2 validation errors:** 3 Normal images were predicted as Pothole; 10 Pothole images were predicted as Normal.
-- **Likely cause:** Transfer learning provides stronger reusable visual features than the compact CNN on this modest image dataset.
-- **Impact:** MobileNetV2 reduces false reports in both classes compared with the class-weighted CNN, but 10 Pothole images were still missed. The model is triage support only and must retain human review.
+- **Frozen MobileNetV2 v3 errors:** Not used for decision-making because validation images were randomly augmented in error.
+- **Impact:** No final conclusion is permitted until the corrected v4 run is reviewed. The model remains triage support only and must retain human review.
 
 ## 10. Complete inference artifact
 
@@ -82,6 +79,6 @@
 
 ## 13. Next action and milestone commit
 
-- **Next evidence-based action:** Evaluate the frozen MobileNetV2 candidate once on the clean protected test split, then save and reload the complete inference artifact.
-- **Model Gate status:** YELLOW - candidate selection is complete, but protected evaluation, artifact saving, and fresh-runtime reload proof remain.
+- **Next evidence-based action:** Run corrected `mobilenetv2_frozen_v4` and update the comparison using its valid validation evidence.
+- **Model Gate status:** YELLOW - the protected test remains untouched, but the invalid v3 preprocessing route must be repaired before candidate selection.
 - **Milestone commit:** To be created after the notebook structure is checked.
