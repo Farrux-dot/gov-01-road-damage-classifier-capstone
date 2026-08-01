@@ -1,0 +1,35 @@
+{
+  "artifact_name": "mobilenetv2_frozen_v4",
+  "model_file": "mobilenetv2_frozen_v4.keras",
+  "task": "Binary image classification: Normal vs Pothole",
+  "class_mapping": {
+    "0": "Normal",
+    "1": "Pothole"
+  },
+  "input_image": {
+    "color_mode": "RGB",
+    "image_size": [224, 224]
+  },
+  "inference_preprocessing": "tf.keras.applications.mobilenet_v2.preprocess_input",
+  "prediction_rule": {
+    "output": "pothole probability",
+    "threshold": 0.5,
+    "prediction_below_threshold": "Normal",
+    "prediction_at_or_above_threshold": "Pothole"
+  },
+  "training_only_augmentation": [
+    "horizontal flip",
+    "rotation 0.05",
+    "zoom 0.10"
+  ],
+  "seed": 42,
+  "tensorflow_version_at_save": "2.20.0",
+  "final_protected_test_metrics": {
+    "accuracy": 0.95082,
+    "macro_f1": 0.939901,
+    "pothole_precision": 0.984375,
+    "pothole_recall": 0.947368,
+    "normal_recall": 0.96,
+    "roc_auc": 0.993684
+  }
+}

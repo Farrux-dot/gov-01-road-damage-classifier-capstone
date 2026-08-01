@@ -11,6 +11,7 @@ reports/*.csv
 !reports/*_learning_curve.png
 !reports/*_validation_confusion_matrix.png
 !reports/*_protected_test_confusion_matrix.png
+!reports/*_reload_proof.png
 artifacts/*.keras
 artifacts/*.h5
 .ipynb_checkpoints/

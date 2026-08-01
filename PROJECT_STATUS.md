@@ -6,7 +6,7 @@ GOV-01 Road Damage Image Classifier
 
 ## Current stage
 
-Model Gate (Module 8) — Yellow
+Model Gate (Module 8) — Green
 
 ## Completed
 
@@ -27,16 +27,19 @@ Model Gate (Module 8) — Yellow
 - Re-ran the corrected frozen MobileNetV2 v4 with random augmentation restricted to training images and recorded valid validation evidence.
 - Locked `mobilenetv2_frozen_v4` as the candidate after it achieved validation Macro F1 `0.933126`.
 - Evaluated the locked V4 candidate once on the protected clean test split, achieving Macro F1 `0.939901` and accuracy `0.950820`; no tuning followed test access.
+- Saved the final model artifact in Colab and tracked its configuration and loading instructions.
+- Reloaded the saved model in a fresh Colab runtime; it reproduced the known proof-image probability exactly (`0.907272`, difference `0.0`).
 
 ## Current task
 
-Save a complete V4 inference artifact and demonstrate that it reloads correctly in a fresh process.
+Review the completed Model Gate evidence and prepare the next capstone deliverable.
 
 ## Next
 
 - Keep the Colab preprocessing evidence with the project records.
 - Preserve the final test result; do not tune or retrain V4 after test access.
-- Save the model, configuration, and loading instructions, then perform a reload proof.
+- Keep the downloaded `.keras` model file safely outside Git.
+- Use the documented final result and limitations when preparing the final capstone report or presentation.
 
 ## Known problems / blockers
 

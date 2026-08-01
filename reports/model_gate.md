@@ -77,11 +77,19 @@
 
 ## 10. Complete inference artifact
 
-- Not produced yet. The eventual artifact must include the model, image size, preprocessing rule, class names, dependency versions, and loading instructions.
+- **Saved model:** `artifacts/mobilenetv2_frozen_v4.keras`, created in Colab (9.19 MB). It is intentionally ignored by Git as a generated binary; retain the downloaded copy privately.
+- **Tracked configuration:** `artifacts/mobilenetv2_frozen_v4_config.json` records the class mapping, `224 x 224` RGB input, MobileNetV2 preprocessing, threshold `0.5`, TensorFlow version, and final test metrics.
+- **Loading instructions:** `artifacts/README.md` contains minimal loading and prediction code.
+- **Inference boundary:** Random flip, rotation, and zoom are training-only and must not be applied during prediction.
 
 ## 11. Reload proof
 
-- Not performed. A fresh Colab/runtime reload check will be required after the final model is saved.
+- **Environment:** Fresh Google Colab runtime, after the original training runtime was deleted.
+- **Action:** Uploaded the saved `.keras` model and a known training image; loaded the model using `tf.keras.models.load_model(..., compile=False)`.
+- **Result:** Original prediction was `Pothole` with probability `0.907272`; reloaded prediction was `Pothole` with probability `0.907272`.
+- **Difference:** `0.0`.
+- **Conclusion:** Reload proof passed. The saved model performs the documented prediction independently of the training session.
+- **Evidence:** `artifacts/reload_proof.md` and `reports/mobilenetv2_frozen_v4_reload_proof.png`.
 
 ## 12. Limitations
 
@@ -90,6 +98,6 @@
 
 ## 13. Next action and milestone commit
 
-- **Next evidence-based action:** Save the locked V4 inference artifact, its configuration, and a reload proof. Do not change the model after the final test.
-- **Model Gate status:** YELLOW - final test evaluation is complete; artifact and reload evidence remain.
-- **Milestone commit:** Record final protected-test evidence before creating the inference artifact.
+- **Next evidence-based action:** Prepare the next capstone deliverable using the final result and limitations. Do not change the model after the final test.
+- **Model Gate status:** GREEN - candidate selection, protected-test evaluation, complete artifact documentation, and fresh-runtime reload proof are complete.
+- **Milestone commit:** Record the complete inference artifact and successful reload proof.
