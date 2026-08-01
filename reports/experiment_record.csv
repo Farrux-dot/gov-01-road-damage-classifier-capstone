@@ -1,1 +1,3 @@
 run_name,hypothesis,changed_factor,class_weight,training_seconds,accuracy,macro_f1,pothole_precision,pothole_recall,normal_recall,roc_auc
+naive_majority_v1,Always predicting the majority class is the simplest floor.,naive majority rule,not applicable,0.0,0.724324,0.420063,0.724324,1.000000,0.000000,0.500000
+cnn_unweighted_v1,A compact CNN can learn road-image patterns beyond the majority rule.,simple CNN model,none,1141.9,0.789189,0.673898,0.795031,0.955224,0.352941,0.867574

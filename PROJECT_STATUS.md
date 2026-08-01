@@ -21,18 +21,19 @@ Model Gate (Module 8) — Yellow
 - Added a documented modeling-readiness plan before model training.
 - Added the first Model Gate notebook: a naive baseline and compact CNN baseline evaluated on validation data only.
 - Added initial Model Gate evidence and artifact documentation; no model result has been claimed yet.
+- Ran the naive and compact-CNN baselines in Colab and saved the real validation metrics and visual evidence.
 
 ## Current task
 
-Run the naive and compact-CNN baselines in Google Colab without touching the held-out clean test split.
+Implement the class-weighted CNN experiment using the same training and validation split.
 
 ## Next
 
 - Keep the Colab preprocessing evidence with the project records.
-- Run `notebooks/GOV_01_model_gate.ipynb` in Colab and save its validation evidence.
+- Compare the unweighted and class-weighted CNN using validation Macro F1 and Normal recall.
 - Compare later approaches on validation data; use the clean test split once for the final selected model.
 
 ## Known problems / blockers
 
 - The supplied test folder remains excluded because it contains duplicate images, but the derived clean split has zero exact-hash overlap.
-- No model has been trained; there are no evaluation results yet.
+- The unweighted CNN is weak at identifying Normal images (validation recall `0.352941`), so it is not a final candidate.
