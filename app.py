@@ -44,7 +44,15 @@ uploaded_image = st.file_uploader(
 )
 
 if uploaded_image is not None:
-    st.image(uploaded_image, caption="Selected image", use_container_width=True)
+    st.image(
+        uploaded_image,
+        caption="Selected image (compact preview)",
+        width=240,
+    )
+    st.caption(
+        "This educational dataset contains low-resolution 64 x 64 pixel images. "
+        "The compact preview avoids enlarging the image beyond its original detail."
+    )
 
     if st.button("Classify image", type="primary", use_container_width=True):
         try:
