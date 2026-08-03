@@ -6,7 +6,7 @@ GOV-01 Road Damage Image Classifier
 
 ## Current stage
 
-Model Gate (Module 8) — Green
+Demo Deployment (Module 8 Class 5) — Yellow
 
 ## Completed
 
@@ -29,19 +29,21 @@ Model Gate (Module 8) — Green
 - Evaluated the locked V4 candidate once on the protected clean test split, achieving Macro F1 `0.939901` and accuracy `0.950820`; no tuning followed test access.
 - Saved the final model artifact in Colab and tracked its configuration and loading instructions.
 - Reloaded the saved model in a fresh Colab runtime; it reproduced the known proof-image probability exactly (`0.907272`, difference `0.0`).
+- Added the local Streamlit demo structure: interface, reusable inference module, smoke test, and local deployment instructions.
 
 ## Current task
 
-Review the completed Model Gate evidence and prepare the next capstone deliverable.
+Run the local Streamlit demo with the private saved `.keras` model and one known-good image.
 
 ## Next
 
-- Keep the Colab preprocessing evidence with the project records.
+- Copy the privately saved `mobilenetv2_frozen_v4.keras` file into the local `artifacts/` folder; it stays ignored by Git.
+- Install requirements, run `python smoke_test.py --image <path>`, and then run `streamlit run app.py`.
+- Record one known-good local prediction and a screenshot of the working app.
 - Preserve the final test result; do not tune or retrain V4 after test access.
-- Keep the downloaded `.keras` model file safely outside Git.
-- Use the documented final result and limitations when preparing the final capstone report or presentation.
 
 ## Known problems / blockers
 
 - The supplied test folder remains excluded because it contains duplicate images, but the derived clean split has zero exact-hash overlap.
 - MobileNetV2 v3 applied random augmentation during validation inference. Its historical metrics are invalid and must not be used for selection or comparison.
+- The `.keras` model file is intentionally not stored in GitHub, so the first deployment route is local Streamlit with Colab as fallback.

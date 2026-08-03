@@ -14,5 +14,6 @@ reports/*.csv
 !reports/*_reload_proof.png
 artifacts/*.keras
 artifacts/*.h5
+demo_inputs/
 .ipynb_checkpoints/
 work/
