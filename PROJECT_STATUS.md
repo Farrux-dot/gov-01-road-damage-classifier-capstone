@@ -47,3 +47,10 @@ Run the local Streamlit demo with the private saved `.keras` model and one known
 - The supplied test folder remains excluded because it contains duplicate images, but the derived clean split has zero exact-hash overlap.
 - MobileNetV2 v3 applied random augmentation during validation inference. Its historical metrics are invalid and must not be used for selection or comparison.
 - The `.keras` model file is intentionally not stored in GitHub, so the first deployment route is local Streamlit with Colab as fallback.
+
+## Version 2 experiment branch
+
+- Branch: `experiment_dataset_v2_finetuning`.
+- Goal: prepare and audit a higher-resolution, more varied dataset before training a new experimental model.
+- Status: planned; no Version 2 dataset files, audit results, model, or performance claims exist yet.
+- Guardrail: Version 1 V4 metrics and its protected test remain final and must not be changed.
