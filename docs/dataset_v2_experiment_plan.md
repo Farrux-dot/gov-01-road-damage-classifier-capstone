@@ -45,4 +45,6 @@ This experiment does **not** change the project into pothole severity assessment
 
 ## Current status
 
+> **Current update (2026-08-07): BLOCKED AT DATA AUDIT.** The local HRP4K archive has been inspected. Its `train.json` lists 4,203 images while the archive contains only 2,286 train JPEG files. See `docs/hrp4k_data_audit.md`. No Version 2 model has been trained or evaluated.
+
 **PLANNED — no HRP4K files have been downloaded, audited, used for training, or used to claim a performance result.**

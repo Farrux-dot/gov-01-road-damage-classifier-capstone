@@ -52,5 +52,5 @@ Run the local Streamlit demo with the private saved `.keras` model and one known
 
 - Branch: `experiment_dataset_v2_finetuning`.
 - Goal: prepare and audit a higher-resolution, more varied dataset before training a new experimental model.
-- Status: planned; no Version 2 dataset files, audit results, model, or performance claims exist yet.
+- Status: blocked at the initial data audit. The inspected HRP4K archive has 1,917 training-image records in `train.json` without matching image files. See `docs/hrp4k_data_audit.md` and issue `DQ-04`.
 - Guardrail: Version 1 V4 metrics and its protected test remain final and must not be changed.
