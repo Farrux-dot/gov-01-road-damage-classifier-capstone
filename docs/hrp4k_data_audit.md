@@ -39,6 +39,12 @@ Because the annotations and available training images do not match, the Version 
 2. If the provider supplies corrected files, download them to the ignored `data/raw/hrp4k/` folder and repeat this file/annotation check.
 3. Only after every annotation image has a corresponding readable file may we complete the remaining audit: image integrity, resolution distribution, class balance, exact duplicate hashes, provider-split overlap, and group/leakage checks.
 
+## Official release-status check (2026-08-08)
+
+The authors' official [HRP4K GitHub repository](https://github.com/hanshenChen/HRP4K) states: "The dataset described in our paper will be released soon." It contains preparation code but no data release or supplementary training archive. This is consistent with the incomplete Zenodo ZIP found above.
+
+Therefore, there is currently no verified official source from which to obtain the missing 1,917 training images. We will preserve this audit evidence and stop the HRP4K experiment unless the authors publish a corrected archive.
+
 ## Decision
 
 **RED — do not train a Version 2 model from the current HRP4K archive.**
