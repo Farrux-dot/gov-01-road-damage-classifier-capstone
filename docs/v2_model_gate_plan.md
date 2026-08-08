@@ -32,4 +32,13 @@ Select one Version 2 candidate using validation evidence only. Lock its architec
 
 ## Current status
 
-Preprocessing was executed and verified in Colab. No Version 2 model has been trained or evaluated.
+Preprocessing was executed and verified in Colab. The first two validation-only reference runs were then completed on 2026-08-08:
+
+| Run ID | Accuracy | Macro F1 | Pothole recall | No-pothole recall | ROC-AUC | Decision |
+|---|---:|---:|---:|---:|---:|---|
+| `v2_naive_no_pothole` | 0.689655 | 0.408163 | 0.000000 | 1.000000 | 0.500000 | Reference floor only |
+| `v2_cnn_unweighted` | 0.689655 | 0.408163 | 0.000000 | 1.000000 | 0.470909 | Reject; it predicted `No_pothole` for every validation image |
+
+The unweighted CNN restored its best validation-loss weights after seven epochs and took 1,248.6 seconds to train. Its validation confusion matrix had 240 true `No_pothole` predictions, zero false pothole predictions, 108 missed potholes, and zero correctly detected potholes. It did not improve on the naive reference.
+
+**Next action:** run `v2_cnn_class_weighted`, keeping the CNN architecture, split, seed, preprocessing, optimizer, and validation metric unchanged while calculating class weights from the training labels only. The protected test remains unloaded.
