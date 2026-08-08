@@ -42,3 +42,11 @@ The model detects pothole presence only. It does not assess danger, physical siz
 - `docs/split_summary.csv` records the final class counts and split ratios.
 - `src/audit_dataset.py` is the reusable audit implementation.
 - `src/build_clean_split.py` is the reproducible clean-split implementation.
+
+## Version 2 experimental source
+
+The Version 1 source above remains the source of the final reported V1 model. The experimental Version 2 branch uses the [Road Damage Dataset: Potholes, Cracks and Manholes](https://www.kaggle.com/datasets/lorenzoarcioni/road-damage-dataset-potholes-cracks-and-manholes), with the [Zenodo DOI 10.5281/zenodo.17834373](https://doi.org/10.5281/zenodo.17834373) as the citation source.
+
+Download the archive from Kaggle and extract it to `data/raw/road_damage_rome/data/`. Keep the ZIP archive, raw image folder, and derived image folders out of Git. The local archive used for the 2026-08-08 audit was `data/raw/archive (4).zip` (185.17 MB).
+
+For Version 2, the target is `Pothole` versus `No_pothole`. `No_pothole` means no pothole annotation; cracks and manholes are included as difficult negative examples. See `docs/road_damage_rome_data_audit.md` for the actual audit findings, licence note, and current Data Gate status.

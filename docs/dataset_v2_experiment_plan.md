@@ -47,4 +47,10 @@ This experiment does **not** change the project into pothole severity assessment
 
 > **Current update (2026-08-07): BLOCKED AT DATA AUDIT.** The local HRP4K archive has been inspected. Its `train.json` lists 4,203 images while the archive contains only 2,286 train JPEG files. See `docs/hrp4k_data_audit.md`. No Version 2 model has been trained or evaluated.
 
+## Replacement source selected (2026-08-08)
+
+HRP4K will not be used because its current official archive is incomplete. The replacement candidate is the Road Damage Dataset: Potholes, Cracks and Manholes. Its actual audit evidence is in `docs/road_damage_rome_data_audit.md`.
+
+The Version 2 task is now `Pothole` versus `No_pothole`, where `No_pothole` means that the image has no pothole annotation. Cracks and manholes are intentionally retained as difficult non-pothole examples. The source has passed initial file-integrity checks but has not yet passed the full Data Gate because a duplicate-free, group-aware split still must be created and verified.
+
 **PLANNED — no HRP4K files have been downloaded, audited, used for training, or used to claim a performance result.**
