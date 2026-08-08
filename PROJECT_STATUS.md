@@ -54,4 +54,5 @@ Run the local Streamlit demo with the private saved `.keras` model and one known
 - Goal: prepare and audit a higher-resolution, more varied dataset before training a new experimental model.
 - Status: blocked at the initial data audit. The inspected HRP4K archive has 1,917 training-image records in `train.json` without matching image files. See `docs/hrp4k_data_audit.md` and issue `DQ-04`.
 - Replacement source: the Rome Road Damage Dataset has passed the V2 audit and now has a duplicate-free, capture-group-aware derived split with zero exact-hash overlap. Evidence is in `docs/road_damage_rome_data_audit.md`, `docs/road_damage_rome_clean_image_manifest.csv`, and `docs/road_damage_rome_split_summary.csv`.
+- Version 2 preprocessing is prepared in `notebooks/GOV_01_v2_preprocessing.ipynb`. It loads only train and validation images, with random augmentation restricted to training. The protected V2 test folder remains unloaded until a model candidate is locked.
 - Guardrail: Version 1 V4 metrics and its protected test remain final and must not be changed.

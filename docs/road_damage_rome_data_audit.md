@@ -75,7 +75,9 @@ After the clean split is created, we will make a separately documented, labeled 
 
 **YELLOW — the data is ready for an exploratory Version 2 training workflow, with the documented capture-group and challenge-set limitations.**
 
-Required next action: implement Version 2 preprocessing and data loaders against the derived split. No Version 2 model has been trained or evaluated.
+**Preprocessing implementation prepared:** `notebooks/GOV_01_v2_preprocessing.ipynb` loads the train and validation folders at 224 x 224 RGB, applies small random transformations to training images only, and deliberately leaves the protected test images unloaded. Its exact configuration is recorded in `docs/road_damage_rome_preprocessing_manifest.json`.
+
+Required next action: execute that preprocessing notebook and record its real folder and batch-shape output. No Version 2 model has been trained or evaluated.
 
 ## Reproducible evidence
 
