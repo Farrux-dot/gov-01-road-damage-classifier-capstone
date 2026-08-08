@@ -8,6 +8,7 @@ reports/*.png
 reports/*.json
 reports/*.csv
 !reports/experiment_record.csv
+!reports/v2_experiment_record.csv
 !reports/*_learning_curve.png
 !reports/*_validation_confusion_matrix.png
 !reports/*_protected_test_confusion_matrix.png
