@@ -53,4 +53,6 @@ HRP4K will not be used because its current official archive is incomplete. The r
 
 The Version 2 task is now `Pothole` versus `No_pothole`, where `No_pothole` means that the image has no pothole annotation. Cracks and manholes are intentionally retained as difficult non-pothole examples. The source has passed initial file-integrity checks but has not yet passed the full Data Gate because a duplicate-free, group-aware split still must be created and verified.
 
+**Update (2026-08-08):** the duplicate-free, capture-group-aware derived split has been created and verified with zero exact-hash overlap. Its evidence is in `docs/road_damage_rome_data_audit.md`. The protected test split is locked until model selection is complete.
+
 **PLANNED — no HRP4K files have been downloaded, audited, used for training, or used to claim a performance result.**

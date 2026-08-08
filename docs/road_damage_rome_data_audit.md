@@ -53,6 +53,18 @@ The unknown group contains 348 images whose filenames do not contain a capture d
 
 **Decision:** do not use a random image-level split. The next implementation must remove exact duplicate copies and create a reproducible, approximate 70%/15%/15% split that keeps each inferred capture-date group in only one split. This reduces likely frame leakage but remains a documented limitation.
 
+## Derived clean split (created 2026-08-08)
+
+`src/build_road_damage_rome_split.py` retained one canonical file from each exact duplicate group and copied the resulting 2,004 unique images to the ignored folder `data/processed/road_damage_rome_clean_split/`.
+
+| Derived split | Capture groups kept together | Total | No_pothole | Pothole | Share of clean pool |
+|---|---|---:|---:|---:|---:|
+| Train | 20250218, 20250219 | 1,398 | 821 | 577 | 69.76% |
+| Validation | unknown_capture_group | 348 | 240 | 108 | 17.37% |
+| Protected test | 20250216, 20250223, 20250226 | 258 | 151 | 107 | 12.87% |
+
+The fixed group assignment is intentionally approximate rather than an exact 70%/15%/15% split. Exact-hash verification found **zero overlap** between every pair of derived splits. The protected test split is now locked: it must not be loaded for model selection, threshold choice, or retraining.
+
 ## Shadow and repaired-road requirement
 
 This dataset gives useful non-pothole examples of cracks and manholes. However, it has no dedicated label for shadows, fresh repairs, road markings, drainage covers, or clean pavement. We must not claim that the model can distinguish these cases until they are tested.
@@ -61,12 +73,15 @@ After the clean split is created, we will make a separately documented, labeled 
 
 ## Gate status
 
-**YELLOW — the raw data passes file integrity checks, but it is not model-ready yet.**
+**YELLOW — the data is ready for an exploratory Version 2 training workflow, with the documented capture-group and challenge-set limitations.**
 
-Required next action: build and verify the duplicate-free, capture-group-aware derived split. No Version 2 model has been trained or evaluated.
+Required next action: implement Version 2 preprocessing and data loaders against the derived split. No Version 2 model has been trained or evaluated.
 
 ## Reproducible evidence
 
 - `src/audit_road_damage_coco.py` is the audit implementation.
 - `docs/road_damage_rome_image_manifest.csv` lists every image, its binary label, source classes, group, and SHA-256 hash.
+- `docs/road_damage_rome_clean_image_manifest.csv` records every retained canonical image and its derived split.
+- `docs/road_damage_rome_split_summary.csv` records the derived split counts and group allocation.
+- `src/build_road_damage_rome_split.py` is the reproducible clean-split implementation.
 - `reports/road_damage_rome_audit.json` is the local generated audit report and remains ignored by Git.

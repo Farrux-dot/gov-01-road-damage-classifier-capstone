@@ -50,3 +50,5 @@ The Version 1 source above remains the source of the final reported V1 model. Th
 Download the archive from Kaggle and extract it to `data/raw/road_damage_rome/data/`. Keep the ZIP archive, raw image folder, and derived image folders out of Git. The local archive used for the 2026-08-08 audit was `data/raw/archive (4).zip` (185.17 MB).
 
 For Version 2, the target is `Pothole` versus `No_pothole`. `No_pothole` means no pothole annotation; cracks and manholes are included as difficult negative examples. See `docs/road_damage_rome_data_audit.md` for the actual audit findings, licence note, and current Data Gate status.
+
+The Version 2 derived images are in the ignored folder `data/processed/road_damage_rome_clean_split/`. They are a duplicate-free, capture-group-aware split with 1,398 training images, 348 validation images, and 258 protected-test images. The exact manifest and split summary are in `docs/road_damage_rome_clean_image_manifest.csv` and `docs/road_damage_rome_split_summary.csv`.

@@ -1,0 +1,4 @@
+split,groups,total,No_pothole,Pothole,percent_of_clean_pool
+train,20250218|20250219,1398,821,577,0.6976
+validation,unknown_capture_group,348,240,108,0.1737
+test,20250216|20250223|20250226,258,151,107,0.1287
