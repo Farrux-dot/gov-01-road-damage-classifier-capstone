@@ -77,7 +77,9 @@ After the clean split is created, we will make a separately documented, labeled 
 
 **Preprocessing implementation prepared:** `notebooks/GOV_01_v2_preprocessing.ipynb` loads the train and validation folders at 224 x 224 RGB, applies small random transformations to training images only, and deliberately leaves the protected test images unloaded. Its exact configuration is recorded in `docs/road_damage_rome_preprocessing_manifest.json`.
 
-Required next action: execute that preprocessing notebook and record its real folder and batch-shape output. No Version 2 model has been trained or evaluated.
+**Preprocessing evidence recorded:** the notebook was executed in Google Colab and produced a training-image batch of shape `(32, 224, 224, 3)` with a matching label batch of shape `(32, 1)`. The observed first shuffled batch contained 18 `No_pothole` and 14 `Pothole` labels. This verifies the loader format only; it is not a model result.
+
+Required next action: build and evaluate Version 2 baseline models using training and validation data only. No Version 2 model has been trained or evaluated.
 
 ## Reproducible evidence
 

@@ -30,5 +30,18 @@
   },
   "important_limitation": "Contrast augmentation may modestly vary lighting, but it does not label shadows, fresh repairs, road markings, or drainage covers as No_pothole. Those cases require a separately documented external challenge set.",
   "fit_boundary": "No learned preprocessing statistics are fitted on validation or protected-test images.",
-  "status": "Implementation prepared but not yet executed. Run and verify it before Version 2 modeling."
+  "execution_evidence": {
+    "environment": "Google Colab",
+    "executed_date": "2026-08-08",
+    "verified_training_batch": {
+      "image_shape": [32, 224, 224, 3],
+      "label_shape": [32, 1],
+      "observed_label_counts": {
+        "No_pothole": 18,
+        "Pothole": 14
+      }
+    },
+    "test_boundary": "The preprocessing workflow verified the protected-test folder structure but did not create or iterate a protected-test image dataset."
+  },
+  "status": "Executed and verified in Google Colab before Version 2 modeling. No Version 2 model has been trained or evaluated."
 }
