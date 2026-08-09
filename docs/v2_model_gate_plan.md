@@ -53,3 +53,26 @@ The frozen MobileNetV2 ran for nine epochs (811.9 seconds) with ImageNet weights
 The fine-tuned MobileNetV2 unfreezes its final 10 feature-extractor layers while keeping batch-normalization layers frozen. It trained for six epochs (642.7 seconds) with learning rate `1e-5`. At the default 0.50 threshold, it correctly detected 63 potholes and missed 45; it correctly labelled 131 `No_pothole` images and incorrectly marked 109 as `Pothole`. Its Macro F1 is `0.539904`, only `0.001341` above frozen MobileNetV2. The gain comes from higher pothole recall; the trade-off is 10 additional false alerts and lower `No_pothole` recall.
 
 **Next action:** search a small set of decision thresholds using validation probabilities and Macro F1 only. Then lock the selected model configuration and threshold before one protected-test evaluation. The protected test remains unloaded.
+
+## Candidate lock (2026-08-09)
+
+The following threshold search used the fine-tuned MobileNetV2 validation probabilities only. Thresholds from `0.10` to `0.90` in steps of `0.05` were compared using Macro F1. The best result is the default threshold **0.50**:
+
+| Threshold | Validation Macro F1 | Pothole recall | No-pothole recall |
+|---:|---:|---:|---:|
+| 0.45 | 0.483752 | 0.685185 | 0.395833 |
+| **0.50** | **0.539904** | **0.583333** | **0.545833** |
+| 0.55 | 0.530026 | 0.407407 | 0.658333 |
+| 0.60 | 0.523234 | 0.277778 | 0.770833 |
+
+The candidate is now locked as `v2_mobilenetv2_finetuned` with these settings:
+
+- derived Rome clean split and its fixed capture-group boundaries;
+- 224 x 224 RGB input and training-only augmentation;
+- binary labels: `No_pothole=0`, `Pothole=1`;
+- class weights: `No_pothole=0.851`, `Pothole=1.211`;
+- ImageNet MobileNetV2, followed by frozen training and then cautious fine-tuning of its final 10 layers with batch-normalization layers frozen;
+- fine-tuning learning rate `1e-5`;
+- decision threshold `0.50`.
+
+No protected-test image has been loaded, predicted, or used to make this decision. The next action is one final protected-test evaluation of this locked candidate. No further tuning, threshold changes, or retraining will be allowed afterward.
