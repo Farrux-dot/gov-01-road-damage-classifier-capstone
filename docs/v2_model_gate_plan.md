@@ -40,6 +40,7 @@ Preprocessing was executed and verified in Colab. The first two validation-only 
 | `v2_cnn_unweighted` | 0.689655 | 0.408163 | 0.000000 | 1.000000 | 0.470909 | Reject; it predicted `No_pothole` for every validation image |
 | `v2_cnn_class_weighted` | 0.577586 | 0.479609 | 0.231481 | 0.733333 | 0.492940 | Improves macro F1 and detects some potholes, but remains too weak to select |
 | `v2_mobilenetv2_frozen` | 0.566092 | 0.538563 | 0.518519 | 0.587500 | 0.548495 | Best V2 validation result so far; continue to fine-tuning, do not test yet |
+| `v2_mobilenetv2_finetuned` | 0.557471 | 0.539904 | 0.583333 | 0.545833 | 0.557022 | Current validation leader by Macro F1; select a validation threshold before locking |
 
 The unweighted CNN restored its best validation-loss weights after seven epochs and took 1,248.6 seconds to train. Its validation confusion matrix had 240 true `No_pothole` predictions, zero false pothole predictions, 108 missed potholes, and zero correctly detected potholes. It did not improve on the naive reference.
 
@@ -49,4 +50,6 @@ When the unweighted CNN was repeated in the later fresh Colab run, its ROC-AUC d
 
 The frozen MobileNetV2 ran for nine epochs (811.9 seconds) with ImageNet weights frozen and only its 1,281-parameter output head trainable. It correctly detected 56 potholes and missed 52; it correctly labelled 141 `No_pothole` images and incorrectly marked 99 as `Pothole`. This is an improvement over both compact CNNs but it is still not a candidate: the false-positive count and both class recalls need improvement.
 
-**Next action:** run `v2_mobilenetv2_finetuned`. Unfreeze only a small final portion of the MobileNetV2 feature extractor, keep batch-normalization layers frozen, use the same class weights and data boundary, and reduce the learning rate substantially. The protected test remains unloaded.
+The fine-tuned MobileNetV2 unfreezes its final 10 feature-extractor layers while keeping batch-normalization layers frozen. It trained for six epochs (642.7 seconds) with learning rate `1e-5`. At the default 0.50 threshold, it correctly detected 63 potholes and missed 45; it correctly labelled 131 `No_pothole` images and incorrectly marked 109 as `Pothole`. Its Macro F1 is `0.539904`, only `0.001341` above frozen MobileNetV2. The gain comes from higher pothole recall; the trade-off is 10 additional false alerts and lower `No_pothole` recall.
+
+**Next action:** search a small set of decision thresholds using validation probabilities and Macro F1 only. Then lock the selected model configuration and threshold before one protected-test evaluation. The protected test remains unloaded.
