@@ -1,3 +1,4 @@
 run_name,hypothesis,changed_factor,class_weight,training_seconds,accuracy,macro_f1,pothole_precision,pothole_recall,no_pothole_recall,roc_auc
 v2_naive_no_pothole,Always predicting the validation majority class establishes a reference floor.,naive majority rule,not applicable,0.0,0.689655,0.408163,0.0,0.0,1.0,0.5
 v2_cnn_unweighted,A compact CNN can learn road-image patterns beyond the naive majority rule.,simple CNN model,none,1248.6,0.689655,0.408163,0.0,0.0,1.0,0.470909
+v2_cnn_class_weighted,Class weights improve pothole recall and macro F1 without changing the compact CNN architecture.,class weights only,No_pothole=0.851; Pothole=1.211,997.1,0.577586,0.479609,0.280899,0.231481,0.733333,0.492940

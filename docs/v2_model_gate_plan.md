@@ -38,7 +38,12 @@ Preprocessing was executed and verified in Colab. The first two validation-only 
 |---|---:|---:|---:|---:|---:|---|
 | `v2_naive_no_pothole` | 0.689655 | 0.408163 | 0.000000 | 1.000000 | 0.500000 | Reference floor only |
 | `v2_cnn_unweighted` | 0.689655 | 0.408163 | 0.000000 | 1.000000 | 0.470909 | Reject; it predicted `No_pothole` for every validation image |
+| `v2_cnn_class_weighted` | 0.577586 | 0.479609 | 0.231481 | 0.733333 | 0.492940 | Improves macro F1 and detects some potholes, but remains too weak to select |
 
 The unweighted CNN restored its best validation-loss weights after seven epochs and took 1,248.6 seconds to train. Its validation confusion matrix had 240 true `No_pothole` predictions, zero false pothole predictions, 108 missed potholes, and zero correctly detected potholes. It did not improve on the naive reference.
 
-**Next action:** run `v2_cnn_class_weighted`, keeping the CNN architecture, split, seed, preprocessing, optimizer, and validation metric unchanged while calculating class weights from the training labels only. The protected test remains unloaded.
+The class-weighted CNN was trained for six epochs (997.1 seconds). Its class weights were calculated from the 1,398 training images: `No_pothole=0.851`, `Pothole=1.211`. Its validation confusion matrix contains 176 correctly predicted `No_pothole` images, 64 `No_pothole` images predicted as `Pothole`, 83 missed potholes, and 25 correctly detected potholes. Class weighting therefore improves the fair Macro F1 score from `0.408163` to `0.479609` and changes pothole recall from `0.0` to `0.231481`; however, it is not a viable candidate.
+
+When the unweighted CNN was repeated in the later fresh Colab run, its ROC-AUC displayed as `0.477881` rather than the initial `0.470909`. Its accuracy, Macro F1, and threshold predictions were unchanged: it still predicted `No_pothole` for all validation images. This minor score variation is recorded as a repeat observation and does not change the decision.
+
+**Next action:** run `v2_mobilenetv2_frozen` with the same derived split, training-only augmentation, validation metric, and class-weight rule. The protected test remains unloaded.
