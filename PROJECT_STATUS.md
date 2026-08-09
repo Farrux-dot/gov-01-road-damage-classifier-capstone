@@ -58,4 +58,5 @@ Run the local Streamlit demo with the private saved `.keras` model and one known
 - The V2 preprocessing notebook was executed in Google Colab and verified a real `(32, 224, 224, 3)` training batch with matching binary labels. This is data-loader evidence only; no V2 model result exists yet.
 - V2 naive and unweighted-CNN validation references were run. The CNN had Macro F1 `0.408163` and pothole recall `0.0`, exactly matching the naive majority rule; it is rejected.
 - V2 class-weighted CNN improved validation Macro F1 to `0.479609` and pothole recall to `0.231481`, but it still missed 83 of 108 potholes. It is not a candidate. The next controlled V2 experiment is frozen MobileNetV2 transfer learning with the recorded class weights.
+- V2 frozen MobileNetV2 improved validation Macro F1 to `0.538563` and pothole recall to `0.518519`, but produced 99 false pothole alerts. It is the current V2 validation leader, not yet a candidate. The next controlled experiment is cautious final-layer fine-tuning; V2 protected test remains unused.
 - Guardrail: Version 1 V4 metrics and its protected test remain final and must not be changed.

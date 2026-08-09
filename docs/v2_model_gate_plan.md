@@ -39,6 +39,7 @@ Preprocessing was executed and verified in Colab. The first two validation-only 
 | `v2_naive_no_pothole` | 0.689655 | 0.408163 | 0.000000 | 1.000000 | 0.500000 | Reference floor only |
 | `v2_cnn_unweighted` | 0.689655 | 0.408163 | 0.000000 | 1.000000 | 0.470909 | Reject; it predicted `No_pothole` for every validation image |
 | `v2_cnn_class_weighted` | 0.577586 | 0.479609 | 0.231481 | 0.733333 | 0.492940 | Improves macro F1 and detects some potholes, but remains too weak to select |
+| `v2_mobilenetv2_frozen` | 0.566092 | 0.538563 | 0.518519 | 0.587500 | 0.548495 | Best V2 validation result so far; continue to fine-tuning, do not test yet |
 
 The unweighted CNN restored its best validation-loss weights after seven epochs and took 1,248.6 seconds to train. Its validation confusion matrix had 240 true `No_pothole` predictions, zero false pothole predictions, 108 missed potholes, and zero correctly detected potholes. It did not improve on the naive reference.
 
@@ -46,4 +47,6 @@ The class-weighted CNN was trained for six epochs (997.1 seconds). Its class wei
 
 When the unweighted CNN was repeated in the later fresh Colab run, its ROC-AUC displayed as `0.477881` rather than the initial `0.470909`. Its accuracy, Macro F1, and threshold predictions were unchanged: it still predicted `No_pothole` for all validation images. This minor score variation is recorded as a repeat observation and does not change the decision.
 
-**Next action:** run `v2_mobilenetv2_frozen` with the same derived split, training-only augmentation, validation metric, and class-weight rule. The protected test remains unloaded.
+The frozen MobileNetV2 ran for nine epochs (811.9 seconds) with ImageNet weights frozen and only its 1,281-parameter output head trainable. It correctly detected 56 potholes and missed 52; it correctly labelled 141 `No_pothole` images and incorrectly marked 99 as `Pothole`. This is an improvement over both compact CNNs but it is still not a candidate: the false-positive count and both class recalls need improvement.
+
+**Next action:** run `v2_mobilenetv2_finetuned`. Unfreeze only a small final portion of the MobileNetV2 feature extractor, keep batch-normalization layers frozen, use the same class weights and data boundary, and reduce the learning rate substantially. The protected test remains unloaded.
