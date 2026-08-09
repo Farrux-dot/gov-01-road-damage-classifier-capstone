@@ -76,3 +76,26 @@ The candidate is now locked as `v2_mobilenetv2_finetuned` with these settings:
 - decision threshold `0.50`.
 
 No protected-test image has been loaded, predicted, or used to make this decision. The next action is one final protected-test evaluation of this locked candidate. No further tuning, threshold changes, or retraining will be allowed afterward.
+
+## Final protected-test evaluation (2026-08-09)
+
+The locked candidate was evaluated once on the 258-image protected test split. No training, threshold change, model change, or selection decision followed this access.
+
+| Metric | Protected-test result |
+|---|---:|
+| Accuracy | 0.500000 |
+| Macro F1 | 0.479668 |
+| Pothole precision | 0.445545 |
+| Pothole recall | 0.841121 |
+| No-pothole recall | 0.258278 |
+| ROC-AUC | 0.597759 |
+
+The confusion matrix is: 39 `No_pothole` images correctly predicted as `No_pothole`; 112 `No_pothole` images incorrectly predicted as `Pothole`; 17 potholes missed; and 90 potholes correctly detected.
+
+### Interpretation and final V2 decision
+
+The model is sensitive to potholes (it detects 90 of 107) but produces too many false pothole alerts (112 of 151 `No_pothole` images). Its protected-test Macro F1 is lower than its validation Macro F1. Therefore, **this V2 model must not be presented as an automatic road-damage decision model or replace the Version 1 demo model.** At most, its `Pothole` output could be described as a preliminary human-review flag, with the documented high false-alert risk.
+
+Version 1 and V2 scores must not be compared as a direct leaderboard: they use different datasets and different derived splits. Version 1 remains the final submitted model for its original dataset. V2 is a documented experimental result showing that the new Rome data and current split/model combination did not yet produce a deployable improvement.
+
+The V2 protected test is now closed. Any future data or model experiment requires a new experiment branch and a new, unused protected test split.
