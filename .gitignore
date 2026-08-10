@@ -17,3 +17,6 @@ artifacts/*.h5
 demo_inputs/
 .ipynb_checkpoints/
 work/
+/presentation/_build/
+/presentation/GOV_01_Road_Damage_Classifier_Defense/
+/presentation/*.pptx.inspect.ndjson

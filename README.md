@@ -18,6 +18,7 @@ See [reports/model_gate.md](reports/model_gate.md) for the full evidence, errors
 - [Final error analysis](reports/error_analysis/ERROR_ANALYSIS.md)
 - [Responsible AI and limitations](docs/RESPONSIBLE_AI_AND_LIMITATIONS.md)
 - [Local demo reproduction test](docs/REPRODUCTION_TEST.md)
+- [Final defense slide deck](presentation/GOV_01_Road_Damage_Classifier_Defense.pptx)
 - [Defense deck map](presentation/DEFENSE_DECK_MAP.md)
 - [Defense Q&A bank](presentation/Q_AND_A_BANK.md)
 

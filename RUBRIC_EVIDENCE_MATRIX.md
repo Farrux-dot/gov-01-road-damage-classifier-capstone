@@ -17,7 +17,7 @@ This is the reviewer map for the GOV-01 Road Damage Image Classifier. It points 
 | 5. End-to-end delivery | 20 | Green | `app.py`; `src/inference.py`; `smoke_test.py`; `tests/test_inference.py`; `artifacts/README.md`; `docs/REPRODUCTION_TEST.md`; `presentation/fallback_evidence/` | Private `.keras` artifact remains outside Git. |
 | 6. Documentation and reproducibility | 10 | Green | `README.md`; `requirements.txt`; `data/README.md`; `artifacts/README.md`; `docs/REPRODUCTION_TEST.md` | Local route requires the documented private artifact. |
 | 7. Responsible AI and limitations | 5 | Green | `docs/RESPONSIBLE_AI_AND_LIMITATIONS.md`; `PROJECT_BRIEF.md`; `data/README.md`; `reports/error_analysis/ERROR_ANALYSIS.md` | None identified. |
-| 8. Presentation, demo, and Q&A | 5 | Yellow | `presentation/DEFENSE_DECK_MAP.md`; `presentation/SPEAKER_FLOW.md`; `presentation/Q_AND_A_BANK.md`; `presentation/FALLBACK_EVIDENCE.md`; local Streamlit route | Create and rehearse the final defense slide deck. |
+| 8. Presentation, demo, and Q&A | 5 | Green | `presentation/GOV_01_Road_Damage_Classifier_Defense.pptx`; `presentation/SPEAKER_FLOW.md`; `presentation/Q_AND_A_BANK.md`; `presentation/FALLBACK_EVIDENCE.md`; local Streamlit route | Practise the deck before the defense. |
 
 ## Essential passing checks
 
@@ -27,7 +27,7 @@ This is the reviewer map for the GOV-01 Road Damage Image Classifier. It points 
 | Final model evaluated on unseen data | Protected clean-test Macro F1 `0.939901`; accuracy `0.950820` | Green |
 | Working end-to-end demo route | Local model-load, test, and Streamlit screenshots in `presentation/fallback_evidence/` | Green |
 | Clear reproduction instructions | `README.md` and `docs/REPRODUCTION_TEST.md` | Green |
-| Explainable defense package | Evidence map, speaker flow, fallback, and Q&A are in `presentation/` | Yellow — final slide deck and rehearsal remain. |
+| Explainable defense package | Final slide deck, evidence map, speaker flow, fallback, and Q&A are in `presentation/` | Green |
 
 ## Final model boundary
 
@@ -39,5 +39,5 @@ This is the reviewer map for the GOV-01 Road Damage Image Classifier. It points 
 
 ## Remaining finalization order
 
-1. Create and rehearse the final defense slide deck using `presentation/DEFENSE_DECK_MAP.md`.
-2. Review only final corrections, record the final commit SHA in `PROJECT_STATUS.md`, and freeze the submission state.
+1. Practise the final defense slide deck using `presentation/SPEAKER_FLOW.md` and `presentation/Q_AND_A_BANK.md`.
+2. Review only final corrections and freeze the submission state.

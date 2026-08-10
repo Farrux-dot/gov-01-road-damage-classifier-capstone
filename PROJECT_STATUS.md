@@ -16,7 +16,7 @@ GOV-01 Road Damage Image Classifier
 
 Module 8 Class 6 - Finalization and Defense Preparation - **Yellow**
 
-The project evidence and the local-demo evidence are complete. The remaining delivery item is to create and rehearse the final defense slide deck.
+The project evidence, local-demo evidence, and final defense deck are complete. The remaining personal preparation is to rehearse the presentation before submission or defense.
 
 ## Completed evidence
 
@@ -27,6 +27,7 @@ The project evidence and the local-demo evidence are complete. The remaining del
 - The selected V1 model was saved, loaded in a fresh Colab runtime, and verified with the same proof-image probability (`0.907272`, difference `0.0`).
 - The local Streamlit app ran successfully with the private model. Model-load, inference-test, and app-prediction screenshots are stored in `presentation/fallback_evidence/`.
 - Local reproduction steps are in `docs/REPRODUCTION_TEST.md`.
+- The final eight-slide defense deck is in `presentation/GOV_01_Road_Damage_Classifier_Defense.pptx`.
 
 ## Demo route
 
@@ -40,6 +41,6 @@ The project evidence and the local-demo evidence are complete. The remaining del
 
 ## Remaining finalization
 
-1. Create and rehearse the final defense slide deck using `presentation/DEFENSE_DECK_MAP.md` and `presentation/SPEAKER_FLOW.md`.
+1. Rehearse the final defense deck using `presentation/SPEAKER_FLOW.md`.
 2. Use `presentation/Q_AND_A_BANK.md` to practise likely questions.
-3. After only final wording/layout corrections, record the submission commit SHA here and freeze the repository state.
+3. After only final wording/layout corrections, freeze the repository state.
