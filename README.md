@@ -12,6 +12,15 @@ The selected model is `mobilenetv2_frozen_v4`.
 
 See [reports/model_gate.md](reports/model_gate.md) for the full evidence, errors, limitations, and protected-test rule.
 
+## Final review documents
+
+- [Rubric-to-repository evidence matrix](RUBRIC_EVIDENCE_MATRIX.md)
+- [Final error analysis](reports/error_analysis/ERROR_ANALYSIS.md)
+- [Responsible AI and limitations](docs/RESPONSIBLE_AI_AND_LIMITATIONS.md)
+- [Local demo reproduction test](docs/REPRODUCTION_TEST.md)
+- [Defense deck map](presentation/DEFENSE_DECK_MAP.md)
+- [Defense Q&A bank](presentation/Q_AND_A_BANK.md)
+
 ## Local Streamlit demo
 
 The app is a local deployment route for one new road image. It loads the saved model and predicts; it never trains a model.

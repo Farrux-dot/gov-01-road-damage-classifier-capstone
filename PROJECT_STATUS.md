@@ -4,46 +4,42 @@
 
 GOV-01 Road Damage Image Classifier
 
+## Final assessed candidate
+
+- Branch: `main`
+- Final model: `mobilenetv2_frozen_v4`
+- Task: one road image -> `Normal` or `Pothole` for human-review triage only.
+- Final protected clean-test result: Macro F1 `0.939901`; accuracy `0.950820`; 183 images.
+- Protected-test rule: the test result was recorded after model selection; no later tuning used the protected test set.
+
 ## Current stage
 
-Demo Deployment (Module 8 Class 5) — Yellow
+Module 8 Class 6 - Finalization and Defense Preparation - **Yellow**
 
-## Completed
+The project evidence and the local-demo evidence are complete. The remaining delivery item is to create and rehearse the final defense slide deck.
 
-- Selected the GOV-01 Road Damage Image Classification scenario.
-- Defined the initial scope: binary `Normal` vs. `Pothole` image classification for report triage.
-- Created the project repository and initial code/documentation structure.
-- Selected a public Kaggle dataset candidate and documented that data files will not be committed to Git.
-- Completed an initial read-only dataset audit and recorded real findings in `docs/data_audit.md`.
-- Rebuilt a clean duplicate-free stratified split from 1,228 unique labeled images and verified zero exact-hash overlap across train, validation, and test.
-- Added the named image preprocessing notebook and manifest with training-only augmentation.
-- Ran the preprocessing notebook in Google Colab; retain its output or a screenshot as supporting evidence.
-- Added a documented modeling-readiness plan before model training.
-- Added the first Model Gate notebook: a naive baseline and compact CNN baseline evaluated on validation data only.
-- Added initial Model Gate evidence and artifact documentation; no model result has been claimed yet.
-- Ran the naive and compact-CNN baselines in Colab and saved the real validation metrics and visual evidence.
-- Ran the class-weighted CNN experiment and improved validation Macro F1 from `0.673898` to `0.775295`.
-- Ran MobileNetV2 v3, then found that its validation images were incorrectly augmented; its results are documented but invalid for selection.
-- Re-ran the corrected frozen MobileNetV2 v4 with random augmentation restricted to training images and recorded valid validation evidence.
-- Locked `mobilenetv2_frozen_v4` as the candidate after it achieved validation Macro F1 `0.933126`.
-- Evaluated the locked V4 candidate once on the protected clean test split, achieving Macro F1 `0.939901` and accuracy `0.950820`; no tuning followed test access.
-- Saved the final model artifact in Colab and tracked its configuration and loading instructions.
-- Reloaded the saved model in a fresh Colab runtime; it reproduced the known proof-image probability exactly (`0.907272`, difference `0.0`).
-- Added the local Streamlit demo structure: interface, reusable inference module, smoke test, and local deployment instructions.
+## Completed evidence
 
-## Current task
+- Project scope and boundary are in `PROJECT_BRIEF.md` and `README.md`.
+- V1 data audit, duplicate removal, clean split, preprocessing plan, and manifests are documented in `docs/`.
+- Model-selection and protected-test evidence are in `reports/model_gate.md` and `reports/experiment_record.csv`.
+- Error patterns and responsible-use boundaries are documented in `reports/error_analysis/ERROR_ANALYSIS.md` and `docs/RESPONSIBLE_AI_AND_LIMITATIONS.md`.
+- The selected V1 model was saved, loaded in a fresh Colab runtime, and verified with the same proof-image probability (`0.907272`, difference `0.0`).
+- The local Streamlit app ran successfully with the private model. Model-load, inference-test, and app-prediction screenshots are stored in `presentation/fallback_evidence/`.
+- Local reproduction steps are in `docs/REPRODUCTION_TEST.md`.
 
-Run the local Streamlit demo with the private saved `.keras` model and one known-good image.
+## Demo route
 
-## Next
+1. Primary route: local Streamlit app with the private `artifacts/mobilenetv2_frozen_v4.keras` model file.
+2. Before demo: run `python smoke_test.py --image <known-good-image>` and `python -m unittest discover -s tests -v`.
+3. Fallback route: show the real local evidence screenshots and explain that the model is deliberately excluded from GitHub.
 
-- Copy the privately saved `mobilenetv2_frozen_v4.keras` file into the local `artifacts/` folder; it stays ignored by Git.
-- Install requirements, run `python smoke_test.py --image <path>`, and then run `streamlit run app.py`.
-- Record one known-good local prediction and a screenshot of the working app.
-- Preserve the final test result; do not tune or retrain V4 after test access.
+## V2 boundary
 
-## Known problems / blockers
+`experiment_dataset_v2_finetuning` is a separate experimental branch. Its protected-test result was weak, so it is closed and must not replace V1. The final assessed candidate remains V1 on `main`.
 
-- The supplied test folder remains excluded because it contains duplicate images, but the derived clean split has zero exact-hash overlap.
-- MobileNetV2 v3 applied random augmentation during validation inference. Its historical metrics are invalid and must not be used for selection or comparison.
-- The `.keras` model file is intentionally not stored in GitHub, so the first deployment route is local Streamlit with Colab as fallback.
+## Remaining finalization
+
+1. Create and rehearse the final defense slide deck using `presentation/DEFENSE_DECK_MAP.md` and `presentation/SPEAKER_FLOW.md`.
+2. Use `presentation/Q_AND_A_BANK.md` to practise likely questions.
+3. After only final wording/layout corrections, record the submission commit SHA here and freeze the repository state.
