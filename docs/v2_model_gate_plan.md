@@ -99,3 +99,9 @@ The model is sensitive to potholes (it detects 90 of 107) but produces too many 
 Version 1 and V2 scores must not be compared as a direct leaderboard: they use different datasets and different derived splits. Version 1 remains the final submitted model for its original dataset. V2 is a documented experimental result showing that the new Rome data and current split/model combination did not yet produce a deployable improvement.
 
 The V2 protected test is now closed. Any future data or model experiment requires a new experiment branch and a new, unused protected test split.
+
+## Historical reproducibility record
+
+The notebook [GOV_01_v2_model_gate.ipynb](../notebooks/GOV_01_v2_model_gate.ipynb) now contains the historical code cells for the class-weighted CNN, frozen MobileNetV2, cautious fine-tuning, and validation threshold search, as well as the earlier baselines. Its test cell is a safety lock: it does **not** load or evaluate the already-used protected test. The observed outcomes are preserved in this plan and in `reports/v2_experiment_record.csv`.
+
+This allows the project to explain how the V2 result was obtained without pretending that it should be trained or tested again. A future experiment must begin with a new branch, a documented new data split, and an unused protected test set.
