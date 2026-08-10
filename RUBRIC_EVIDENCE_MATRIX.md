@@ -15,10 +15,10 @@ This document is the reviewer map for the GOV-01 Road Damage Image Classifier. I
 | 1. Problem definition and alignment | 10 | Green | `PROJECT_BRIEF.md`; `README.md` | Add this matrix to the final reviewer route. |
 | 2. Data and preprocessing pipeline | 15 | Green | `data/README.md`; `docs/data_audit.md`; `docs/clean_image_manifest.csv`; `docs/split_summary.csv`; `docs/preprocessing_manifest.json`; `notebooks/GOV_01_data_preprocessing.ipynb` | None identified in this evidence map. |
 | 3. Modeling and experiments | 20 | Green | `docs/modeling_readiness.md`; `notebooks/GOV_01_model_gate.ipynb`; `notebooks/GOV_01_class_weighted_cnn.ipynb`; `notebooks/GOV_01_mobilenetv2_transfer_v4.ipynb`; `reports/experiment_record.csv`; `reports/model_gate.md` | Clearly label V1 as final and V2 as a closed non-deployable experiment. |
-| 4. Evaluation and error analysis | 15 | Yellow | `reports/model_gate.md`; `reports/mobilenetv2_frozen_v4_protected_test_confusion_matrix.png`; `reports/mobilenetv2_frozen_v4_validation_confusion_matrix.png`; `reports/experiment_record.csv` | Create one short final error-analysis document that explains the false-positive and false-negative risks. |
+| 4. Evaluation and error analysis | 15 | Green | `reports/model_gate.md`; `reports/error_analysis/ERROR_ANALYSIS.md`; `reports/mobilenetv2_frozen_v4_protected_test_confusion_matrix.png`; `reports/mobilenetv2_frozen_v4_validation_confusion_matrix.png`; `reports/experiment_record.csv` | None identified in this evidence map. |
 | 5. End-to-end delivery | 20 | Yellow | `app.py`; `src/inference.py`; `smoke_test.py`; `tests/test_inference.py`; `artifacts/README.md`; `artifacts/reload_proof.md` | Record the known-good local app result and one fallback item in the repository. The private `.keras` artifact remains outside Git. |
 | 6. Documentation and reproducibility | 10 | Yellow | `README.md`; `requirements.txt`; `data/README.md`; `artifacts/README.md`; `artifacts/reload_proof.md` | Create a final clean-reproduction test record for the local demo route. |
-| 7. Responsible AI and limitations | 5 | Yellow | `PROJECT_BRIEF.md`; `data/README.md`; `reports/model_gate.md`; `artifacts/README.md` | Create one project-specific responsible-use and limitations document. |
+| 7. Responsible AI and limitations | 5 | Green | `docs/RESPONSIBLE_AI_AND_LIMITATIONS.md`; `PROJECT_BRIEF.md`; `data/README.md`; `reports/error_analysis/ERROR_ANALYSIS.md`; `artifacts/README.md` | None identified in this evidence map. |
 | 8. Presentation, demo, and Q&A | 5 | Yellow | `README.md`; `PROJECT_STATUS.md`; local Streamlit route | Create the defense map, speaker flow, fallback checklist, and Q&A bank. |
 
 ## Essential passing checks
@@ -41,8 +41,7 @@ This document is the reviewer map for the GOV-01 Road Damage Image Classifier. I
 
 ## Finalization order
 
-1. Add final error analysis and responsible-use documentation.
-2. Record the clean local-demo reproduction test and fallback evidence.
-3. Create defense map, speaker flow, and Q&A bank.
-4. Update README and `PROJECT_STATUS.md` to point to this final evidence.
-5. Review the repository, make final corrections only, and freeze the final commit.
+1. Record the clean local-demo reproduction test and fallback evidence.
+2. Create defense map, speaker flow, and Q&A bank.
+3. Update README and `PROJECT_STATUS.md` to point to this final evidence.
+4. Review the repository, make final corrections only, and freeze the final commit.
