@@ -5,3 +5,4 @@ scikit-learn>=1.4
 matplotlib>=3.8
 seaborn>=0.13
 streamlit>=1.40,<2.0
+huggingface_hub>=0.24,<1.0

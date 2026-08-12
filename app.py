@@ -10,6 +10,8 @@ from src.inference import load_artifact_config, load_saved_model, predict_image
 ROOT = Path(__file__).resolve().parent
 MODEL_PATH = ROOT / "artifacts" / "mobilenetv2_frozen_v4.keras"
 CONFIG_PATH = ROOT / "artifacts" / "mobilenetv2_frozen_v4_config.json"
+HF_MODEL_REPOSITORY = "FF2050/gov-01-road-damage-classifier-model"
+HF_MODEL_FILENAME = "mobilenetv2_frozen_v4.keras"
 
 st.set_page_config(
     page_title="GOV-01 Road Damage Classifier",
@@ -20,7 +22,35 @@ st.set_page_config(
 @st.cache_resource(show_spinner="Loading the saved V4 model...")
 def get_artifacts():
     """Load model and configuration once for the current Streamlit process."""
-    return load_saved_model(MODEL_PATH), load_artifact_config(CONFIG_PATH)
+    config = load_artifact_config(CONFIG_PATH)
+
+    # Local use keeps working when the private model file is beside the app.
+    if MODEL_PATH.is_file():
+        return load_saved_model(MODEL_PATH), config
+
+    # Streamlit Community Cloud downloads the private model with its secret token.
+    token = st.secrets.get("HF_TOKEN", None)
+    if not token:
+        raise FileNotFoundError(
+            "The saved model is not available. Add HF_TOKEN in Streamlit Cloud "
+            "secrets, or copy the private .keras model into artifacts/ for local use."
+        )
+
+    try:
+        from huggingface_hub import hf_hub_download
+
+        downloaded_model = hf_hub_download(
+            repo_id=HF_MODEL_REPOSITORY,
+            filename=HF_MODEL_FILENAME,
+            token=token,
+        )
+    except Exception as exc:
+        raise FileNotFoundError(
+            "The private model could not be downloaded from Hugging Face. "
+            "Check the repository name and the HF_TOKEN secret."
+        ) from exc
+
+    return load_saved_model(downloaded_model), config
 
 
 st.title("GOV-01 Road Damage Classifier")

@@ -41,6 +41,16 @@ streamlit run app.py
 
 Then open the local URL displayed by Streamlit, upload a PNG or JPEG road image, and select **Classify image**.
 
+### Public Streamlit deployment
+
+The public app downloads the private final model from the private Hugging Face repository `FF2050/gov-01-road-damage-classifier-model`. In Streamlit Community Cloud, add this secret in **Advanced settings** before deployment:
+
+```toml
+HF_TOKEN = "your-read-only-Hugging-Face-token"
+```
+
+Never commit the token or the `.keras` model file. The app also supports the existing local route: copy the private model into `artifacts/` and run Streamlit normally.
+
 ### Smoke test
 
 Use one known-good private image, such as your downloaded reload-proof image:
