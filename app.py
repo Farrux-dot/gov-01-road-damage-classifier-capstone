@@ -38,21 +38,32 @@ def get_artifacts():
             "secrets, or copy the private .keras model into artifacts/ for local use."
         )
 
-    try:
-        from huggingface_hub import hf_hub_download
+    from huggingface_hub import HfApi, hf_hub_download
 
+    # Test the saved secret independently before asking it for the model.
+    # This reports whether the token itself is invalid or whether a valid
+    # account lacks permission for this particular private repository.
+    try:
+        account = HfApi().whoami(token=token)
+    except Exception as exc:
+        raise FileNotFoundError(
+            "Hugging Face rejected the HF_TOKEN saved in Streamlit Cloud "
+            f"({type(exc).__name__}). The token itself is invalid, expired, "
+            "or belongs to a different account."
+        ) from exc
+
+    try:
         downloaded_model = hf_hub_download(
             repo_id=HF_MODEL_REPOSITORY,
             filename=HF_MODEL_FILENAME,
             token=token,
         )
     except Exception as exc:
-        # Show the failure category in Streamlit Cloud without printing the
-        # secret token. This distinguishes missing-file, access, and network
-        # problems during deployment.
+        account_name = account.get("name", "unknown account")
         raise FileNotFoundError(
-            "Private model download failed "
-            f"({type(exc).__name__}): {exc}"
+            "Hugging Face accepted the token for "
+            f"'{account_name}', but that account cannot read the required "
+            f"private model ({type(exc).__name__})."
         ) from exc
 
     return load_saved_model(downloaded_model), config
