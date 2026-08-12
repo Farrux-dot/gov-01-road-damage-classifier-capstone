@@ -29,7 +29,9 @@ def get_artifacts():
         return load_saved_model(MODEL_PATH), config
 
     # Streamlit Community Cloud downloads the private model with its secret token.
-    token = st.secrets.get("HF_TOKEN", None)
+    # Secrets copied from a browser can accidentally include a trailing newline
+    # or space. Hugging Face rejects those tokens, so normalize only whitespace.
+    token = st.secrets.get("HF_TOKEN", "").strip()
     if not token:
         raise FileNotFoundError(
             "The saved model is not available. Add HF_TOKEN in Streamlit Cloud "
