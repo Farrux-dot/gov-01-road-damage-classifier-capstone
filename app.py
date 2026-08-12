@@ -45,9 +45,12 @@ def get_artifacts():
             token=token,
         )
     except Exception as exc:
+        # Show the failure category in Streamlit Cloud without printing the
+        # secret token. This distinguishes missing-file, access, and network
+        # problems during deployment.
         raise FileNotFoundError(
-            "The private model could not be downloaded from Hugging Face. "
-            "Check the repository name and the HF_TOKEN secret."
+            "Private model download failed "
+            f"({type(exc).__name__}): {exc}"
         ) from exc
 
     return load_saved_model(downloaded_model), config
