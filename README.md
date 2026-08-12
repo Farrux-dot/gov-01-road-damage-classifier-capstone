@@ -43,13 +43,9 @@ Then open the local URL displayed by Streamlit, upload a PNG or JPEG road image,
 
 ### Public Streamlit deployment
 
-The public app downloads the private final model from the private Hugging Face repository `FF2050/gov-01-road-damage-classifier-model`. In Streamlit Community Cloud, add this secret in **Advanced settings** before deployment:
+The public app downloads the final model from the public Hugging Face model repository `FF2050/gov-01-road-damage-classifier-model`. No Streamlit secret is required. The raw dataset is not included in the app or this repository.
 
-```toml
-HF_TOKEN = "your-read-only-Hugging-Face-token"
-```
-
-Never commit the token or the `.keras` model file. The app also supports the existing local route: copy the private model into `artifacts/` and run Streamlit normally.
+Do not commit the `.keras` file to this GitHub repository. The app also supports the existing local route: copy the model into `artifacts/` and run Streamlit normally.
 
 ### Smoke test
 

@@ -28,42 +28,18 @@ def get_artifacts():
     if MODEL_PATH.is_file():
         return load_saved_model(MODEL_PATH), config
 
-    # Streamlit Community Cloud downloads the private model with its secret token.
-    # Secrets copied from a browser can accidentally include a trailing newline
-    # or space. Hugging Face rejects those tokens, so normalize only whitespace.
-    token = st.secrets.get("HF_TOKEN", "").strip()
-    if not token:
-        raise FileNotFoundError(
-            "The saved model is not available. Add HF_TOKEN in Streamlit Cloud "
-            "secrets, or copy the private .keras model into artifacts/ for local use."
-        )
-
-    from huggingface_hub import HfApi, hf_hub_download
-
-    # Test the saved secret independently before asking it for the model.
-    # This reports whether the token itself is invalid or whether a valid
-    # account lacks permission for this particular private repository.
-    try:
-        account = HfApi().whoami(token=token)
-    except Exception as exc:
-        raise FileNotFoundError(
-            "Hugging Face rejected the HF_TOKEN saved in Streamlit Cloud "
-            f"({type(exc).__name__}). The token itself is invalid, expired, "
-            "or belongs to a different account."
-        ) from exc
-
+    # The public deployment downloads the public model artifact. No token or
+    # Streamlit Secret is needed; the raw dataset remains outside this app.
+    from huggingface_hub import hf_hub_download
     try:
         downloaded_model = hf_hub_download(
             repo_id=HF_MODEL_REPOSITORY,
             filename=HF_MODEL_FILENAME,
-            token=token,
         )
     except Exception as exc:
-        account_name = account.get("name", "unknown account")
         raise FileNotFoundError(
-            "Hugging Face accepted the token for "
-            f"'{account_name}', but that account cannot read the required "
-            f"private model ({type(exc).__name__})."
+            "The public model file could not be downloaded from Hugging Face "
+            f"({type(exc).__name__})."
         ) from exc
 
     return load_saved_model(downloaded_model), config
