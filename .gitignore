@@ -1,6 +1,7 @@
 __pycache__/
 *.py[cod]
 .venv/
+.venvv/
 data/raw/
 data/processed/
 models/*.keras

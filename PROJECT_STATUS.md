@@ -43,4 +43,7 @@ The project evidence, local-demo evidence, and final defense deck are complete. 
 
 1. Rehearse the final defense deck using `presentation/SPEAKER_FLOW.md`.
 2. Use `presentation/Q_AND_A_BANK.md` to practise likely questions.
-3. After only final wording/layout corrections, freeze the repository state.
+3. Debugging milestone completed (2026-08-15): added a Git-hygiene check and
+   ignored the local `.venvv/` virtual-environment folder to prevent accidental
+   commits. See `docs/AI_DEBUG_REPORT.md`.
+4. After only final wording/layout corrections, freeze the repository state.
