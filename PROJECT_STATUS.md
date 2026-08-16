@@ -14,9 +14,9 @@ GOV-01 Road Damage Image Classifier
 
 ## Current stage
 
-Module 8 Class 6 - Finalization and Defense Preparation - **Yellow**
+EXTC4 - Evidence and Defense Readiness Gate - **Yellow**
 
-The project evidence, local-demo evidence, and final defense deck are complete. The remaining personal preparation is to rehearse the presentation before submission or defense.
+The project evidence, public demo route, local-demo evidence, and final defense deck are complete. The remaining personal preparation is to rehearse the presentation before submission or defense and record the real results honestly.
 
 ## Completed evidence
 
@@ -31,19 +31,25 @@ The project evidence, local-demo evidence, and final defense deck are complete. 
 
 ## Demo route
 
-1. Primary route: local Streamlit app with the private `artifacts/mobilenetv2_frozen_v4.keras` model file.
-2. Before demo: run `python smoke_test.py --image <known-good-image>` and `python -m unittest discover -s tests -v`.
-3. Fallback route: show the real local evidence screenshots and explain that the model is deliberately excluded from GitHub.
+1. Primary route: public showcase -> [public Streamlit app](https://ff2050-gov01-road-damage.streamlit.app/) -> upload one new, non-protected road image -> **Classify image**.
+2. Local verification route: run `python smoke_test.py --image <known-good-image>` and `python -m unittest discover -s tests -v` with the documented private local artifact.
+3. Fallback route: show the real local evidence screenshots in `presentation/fallback_evidence/` and explain that raw data and the private local artifact are deliberately excluded from GitHub.
 
 ## V2 boundary
 
 `experiment_dataset_v2_finetuning` is a separate experimental branch. Its protected-test result was weak, so it is closed and must not replace V1. The final assessed candidate remains V1 on `main`.
 
+## EXTC4 evidence and defense readiness artifacts
+
+- `docs/defense_pitch_outline.md` - complete five-minute route; personal timing remains pending.
+- `docs/capstone_evidence_matrix.md` - all eight criteria, essential requirements, and three pending Show-Me-Where checks.
+- `docs/defense_question_bank.md` - ten likely questions with evidence references; personal live-answer record remains pending.
+- `docs/final_action_plan.md` - exact final rehearsal actions and checks.
+
 ## Remaining finalization
 
-1. Rehearse the final defense deck using `presentation/SPEAKER_FLOW.md`.
-2. Use `presentation/Q_AND_A_BANK.md` to practise likely questions.
-3. Debugging milestone completed (2026-08-15): added a Git-hygiene check and
-   ignored the local `.venvv/` virtual-environment folder to prevent accidental
-   commits. See `docs/AI_DEBUG_REPORT.md`.
-4. After only final wording/layout corrections, freeze the repository state.
+1. Rehearse the final defense deck using `docs/defense_pitch_outline.md` and `presentation/SPEAKER_FLOW.md`; record actual duration and one revision.
+2. Use `docs/defense_question_bank.md` and `presentation/Q_AND_A_BANK.md` to practise at least three questions and record one answer.
+3. Perform the three Show-Me-Where checks in `docs/capstone_evidence_matrix.md`; record actual PASS/FAIL results.
+4. Debugging milestone completed (2026-08-15): added a Git-hygiene check and ignored the local `.venvv/` virtual-environment folder to prevent accidental commits. See `docs/AI_DEBUG_REPORT.md`.
+5. After only final wording/layout corrections, freeze the repository state.
