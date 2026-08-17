@@ -42,7 +42,7 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 ## EXTC4 evidence and defense readiness artifacts
 
 - `docs/defense_pitch_outline.md` - complete five-minute route; personal timing remains pending.
-- `docs/capstone_evidence_matrix.md` - all eight criteria, essential requirements, and three pending Show-Me-Where checks.
+- `docs/capstone_evidence_matrix.md` - all eight criteria, essential requirements, and three completed Show-Me-Where checks (all PASS on 2026-08-17).
 - `docs/defense_question_bank.md` - ten likely questions with evidence references; personal live-answer record remains pending.
 - `docs/final_action_plan.md` - exact final rehearsal actions and checks.
 
@@ -50,6 +50,5 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 
 1. Rehearse the final defense deck using `docs/defense_pitch_outline.md` and `presentation/SPEAKER_FLOW.md`; record actual duration and one revision.
 2. Use `docs/defense_question_bank.md` and `presentation/Q_AND_A_BANK.md` to practise at least three questions and record one answer.
-3. Perform the three Show-Me-Where checks in `docs/capstone_evidence_matrix.md`; record actual PASS/FAIL results.
-4. Debugging milestone completed (2026-08-15): added a Git-hygiene check and ignored the local `.venvv/` virtual-environment folder to prevent accidental commits. See `docs/AI_DEBUG_REPORT.md`.
-5. After only final wording/layout corrections, freeze the repository state.
+3. Debugging milestone completed (2026-08-15): added a Git-hygiene check and ignored the local `.venvv/` virtual-environment folder to prevent accidental commits. See `docs/AI_DEBUG_REPORT.md`.
+4. After only final wording/layout corrections, freeze the repository state.
