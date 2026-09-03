@@ -27,13 +27,20 @@ For every source class, inspect the eight selected images and record your findin
 
 | Source class | Check manually | Review result |
 | --- | --- | --- |
-| Longitudinal crack | Is the red box on a road crack rather than a shadow or marking? | Pending |
-| Transverse crack | Is the red box on a road crack rather than a shadow or marking? | Pending |
-| Alligator crack | Is the red box on a clustered crack pattern? | Pending |
-| Pothole | Is the red box on a physical hole/depression, not a shadow, puddle, stain, or manhole? | Pending |
-| Manhole cover | Is the red box on a cover rather than a pothole? | Pending |
-| Longitudinal patch | Is the red box on a repair/patch aligned with the road direction? | Pending |
-| Transverse patch | Is the red box on a repair/patch across the road direction? | Pending |
+| Longitudinal crack | Is the red box on a road crack rather than a shadow or marking? | Accept for conversion — reviewed 8 training examples; source class matched the visible pattern. |
+| Transverse crack | Is the red box on a road crack rather than a shadow or marking? | Accept for conversion — reviewed 8 training examples; source class matched the visible pattern. |
+| Alligator crack | Is the red box on a clustered crack pattern? | Accept for conversion — reviewed 8 training examples; source class matched the visible pattern. |
+| Pothole | Is the red box on a physical hole/depression, not a shadow, puddle, stain, or manhole? | Accept for conversion — reviewed 8 training examples; source class matched the visible pattern. |
+| Manhole cover | Is the red box on a cover rather than a pothole? | Accept for conversion — reviewed 8 training examples; source class matched the visible pattern. |
+| Longitudinal patch | Is the red box on a repair/patch aligned with the road direction? | Accept for conversion — reviewed 8 training examples; source class matched the visible pattern. |
+| Transverse patch | Is the red box on a repair/patch across the road direction? | Accept for conversion — reviewed 8 training examples; source class matched the visible pattern. |
+
+## Recorded review outcome
+
+- Review date: 2026-09-03
+- Reviewer conclusion: all 56 displayed training examples were recognizable and matched their supplied source classes.
+- Limitation: the image quality and small preview size made some details difficult to see. This is a small manual sanity check only; it does not certify semantic accuracy for every image or box in the complete 8,000-image source.
+- No questionable filename was recorded during this review.
 
 ## What to write after you inspect the sheets
 
