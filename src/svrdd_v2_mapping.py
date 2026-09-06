@@ -19,6 +19,16 @@ SVRDD_TO_V2 = {
     "transverse patch": "repaired_road",
 }
 
+SVRDD_CATEGORY_ID_TO_NAME = {
+    0: "longitudinal crack",
+    1: "transverse crack",
+    2: "alligator crack",
+    3: "pothole",
+    4: "manhole cover",
+    5: "longitudinal patch",
+    6: "transverse patch",
+}
+
 # Used only when an SVRDD image needs one source-derived multi-class label.
 # It is not the complete V2 priority order for future look-alike sources.
 SVRDD_MULTICLASS_PRIORITY = (
