@@ -23,6 +23,7 @@ Images must not be downloaded into Git. Store raw archives and raw images in an 
 | [SVRDD_YOLO](https://huggingface.co/datasets/ShuoZheLi/SVRDD_YOLO) | Dataset card lists 8,000 images, 20,804 annotated objects, a total size of 3.92 GB, and YOLO-format annotations. Its classes include three crack types, potholes, manhole covers, and longitudinal/transverse patches. The card states CC BY 4.0. | `Pothole`, `Crack`, `Manhole`, `Repaired_road` | Object detection; multi-label after conversion | **Acquired and structurally audited on 2026-09-02.** V2 label conversion, visual sample review, and a new V2 split are still required before training. |
 | [RDD2022 official dataset record](https://figshare.com/articles/dataset/RDD2022_-_The_multi-national_Road_Damage_Dataset_released_through_CRDDC_2022/21431547) | The official Figshare record lists CC BY 4.0. It reports 47,420 road images from six countries, over 55,000 damage instances, and four damage types: longitudinal crack, transverse crack, alligator crack, and pothole. The full archive is 12.36 GB. | `Pothole`, `Crack` | Object detection; multi-label after a documented label conversion | **Deferred.** Its host was too slow during the 2026-09-01 attempted download. Do not use the country links that returned HTTP 403. |
 | [N-RDD2024 official dataset record](https://data.mendeley.com/datasets/27c8pwsd6v/5) | The official Mendeley record lists CC BY 4.0, ten road-condition labels, and a 6.58 GB complete download. | `Pothole`, `Crack`, `Manhole`, `Repaired_road`, `Road_marking` look-alikes | Object detection; multi-label after conversion | **Deferred.** The host throttled the complete download; it is not the first V2 acquisition. |
+| [PaveBench](https://huggingface.co/datasets/VVQNN/PaveBench) | Dataset card lists 20,124 high-resolution 512 x 512 pavement images for its visual-perception subset; image-level labels, detection boxes, and segmentation masks; and CC BY-NC-SA 4.0. Its visual classes are pothole, three crack types, patch, and negative. It also retains hard distractors such as pavement stains, tree shadows, and road markings. | `Pothole`, `Crack`, `Repaired_road` (from `patch`), and candidate hard-negative images | Image classification, object detection, and segmentation supplement | **Selected for preflight review, not yet downloaded.** It has no `Manhole`, `Unpaved_road`, `Shadow`, `Puddle`, `Road_stain`, or `Road_marking` ground-truth class. Do not turn its generic `negative` images into those labels automatically. Its non-commercial, share-alike licence must be retained in project documentation. |
 | [RAD Road Anomaly Detection](https://www.kaggle.com/datasets/rohitsuresh15/radroad-anomaly-detection) | The published description lists potholes, cracks, manholes, and unsurfaced roads. The licence was not verified during this shortlist review. | Potentially `Pothole`, `Crack`, `Manhole`, `Unpaved_road` | Possible multi-class or object-detection supplement | **Do not download yet.** Check the Kaggle licence and annotation format first. |
 | Manually collected or permission-based images | License and consent depend on the individual source; must be recorded per image set. | `Shadow`, `Puddle`, `Road_marking`, `Road_stain`, `Repaired_road`, `Unpaved_road`, clean `Normal_asphalt` | All three V2 approaches after manual labeling | **Required supplement.** These look-alike categories are essential to prevent false pothole alerts. |
 
@@ -52,6 +53,26 @@ Existing object boxes can help establish some labels, but each image must still 
 
 The first object-detection pilot should use a source with genuine bounding boxes, such as RDD2022 or SVRDD_YOLO. The pilot must use a separate clean split created after duplicate and source-overlap checks. A source-provided train/validation/test split must not automatically be trusted as leak-free.
 
+## Corrected multi-source V2 plan
+
+No single reviewed source contains the full V2 label guide. The future V2
+dataset must therefore be treated as separate, honest data pools rather than
+one falsely complete dataset.
+
+| Needed V2 condition | Current honest source position |
+| --- | --- |
+| `Pothole` | Available in audited SVRDD. PaveBench may later add high-resolution diversity after its own audit. |
+| `Crack` | Available in audited SVRDD. PaveBench may later add high-resolution diversity after its own audit. |
+| `Repaired_road` | Available in audited SVRDD. PaveBench `patch` may map here after visual and format audit. |
+| `Manhole` | Available in audited SVRDD. PaveBench does not provide it. |
+| `Unpaved_road` | **Open gap.** RAD or another source requires licence and format preflight before acquisition. |
+| `Shadow`, `Puddle`, `Road_stain`, `Road_marking` | **Open gap.** These require explicit manual labels. PaveBench negative images are only candidates for manual review, not ground truth for a named look-alike label. |
+| `Normal_asphalt` | **Open gap.** Must be manually reviewed as clear asphalt; it cannot be inferred from a generic negative label. |
+
+The V1 Normal data is rejected for this purpose because its 64 x 64 images do
+not have enough detail for a defensible clear-asphalt or look-alike decision.
+See [`V2_V1_NORMAL_VISUAL_REVIEW.md`](V2_V1_NORMAL_VISUAL_REVIEW.md).
+
 ## Required source record before download
 
 For every candidate used, record:
@@ -78,4 +99,7 @@ For every candidate used, record:
 
 ## Next approved task
 
-Review a stratified visual sample of SVRDD labels, then document the source-to-V2 label conversion. Do not use the supplied test split as V2's final protected test without duplicate and source-overlap checks.
+Perform a **PaveBench preflight review only**: confirm its downloaded structure,
+licence record, image/annotation alignment, exact class names, and duplicate
+risks before accepting any file for V2. Do not merge SVRDD and PaveBench, build
+a combined split, or train a model at this stage.
