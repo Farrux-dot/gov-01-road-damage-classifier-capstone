@@ -66,4 +66,11 @@ The zero exact-duplicate result is useful, but it does not detect visually simil
 
 ## Current integration decision
 
-**Needs V1 Normal visual review.** No V1 image has been copied or merged into V2. The next small task is a stratified visual review of the V1 `Normal` training images, focused on whether they are truly clear asphalt or contain V2 look-alikes.
+**V1 Normal images rejected for V2.** A deterministic visual review sample
+found that the original 64 x 64 images do not provide enough detail to make a
+defensible `normal_asphalt` decision. See
+[`V2_V1_NORMAL_VISUAL_REVIEW.md`](V2_V1_NORMAL_VISUAL_REVIEW.md).
+
+No V1 image has been copied or merged into V2. The 624 V1 Pothole training
+images remain a possible future image-level source, but they are not being
+used now and cannot support object detection because they have no boxes.
