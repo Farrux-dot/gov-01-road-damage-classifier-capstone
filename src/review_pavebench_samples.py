@@ -14,12 +14,22 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 
-REVIEW_CLASSES = ("pothole", "patch", "negative")
+REVIEW_CLASSES = (
+    "pothole",
+    "patch",
+    "negative",
+    "alligator_crack",
+    "longitudinal_crack",
+    "transverse_crack",
+)
 CLASSIFICATION_SPLITS = ("train", "val", "test")
 REVIEW_NOTES = {
     "pothole": "Candidate for Pothole; human review still required before use.",
     "patch": "Candidate for Repaired_road; do not map automatically.",
     "negative": "Generic negative only; do not relabel as a specific road look-alike.",
+    "alligator_crack": "Candidate for Crack; human review still required before use.",
+    "longitudinal_crack": "Candidate for Crack; human review still required before use.",
+    "transverse_crack": "Candidate for Crack; human review still required before use.",
 }
 PREVIEW_SIZE = (512, 512)
 MARGIN = 12
@@ -107,6 +117,13 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True, help="Ignored folder for contact sheets and manifest.")
     parser.add_argument("--samples-per-class", type=int, default=12, help="Number of images to show for each review class.")
     parser.add_argument("--seed", type=int, default=42, help="Fixed selection seed for reproducible review.")
+    parser.add_argument(
+        "--classes",
+        nargs="+",
+        choices=REVIEW_CLASSES,
+        default=list(REVIEW_CLASSES),
+        help="Source classes to include. Defaults to every supported review class.",
+    )
     args = parser.parse_args()
 
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -120,7 +137,7 @@ def main() -> None:
     }
     all_review_rows: list[dict[str, str]] = []
 
-    for category in REVIEW_CLASSES:
+    for category in args.classes:
         candidates = category_image_paths(args.classification_dir, category)
         selected = choose_samples(candidates, args.samples_per_class, args.seed, category)
         output_name = f"pavebench_{category}_review.png"
@@ -141,7 +158,7 @@ def main() -> None:
         writer = csv.DictWriter(queue_file, fieldnames=all_review_rows[0].keys())
         writer.writeheader()
         writer.writerows(all_review_rows)
-    print(f"Created {len(REVIEW_CLASSES)} PaveBench contact sheets in {args.output_dir}")
+    print(f"Created {len(args.classes)} PaveBench contact sheets in {args.output_dir}")
     print(f"Saved review manifest: {manifest_path}")
     print(f"Saved human review queue: {queue_path}")
 

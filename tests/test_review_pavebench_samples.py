@@ -44,6 +44,11 @@ class PaveBenchVisualReviewTests(unittest.TestCase):
     def test_negative_note_prevents_automatic_specific_relabel(self) -> None:
         self.assertIn("do not relabel", REVIEW_NOTES["negative"].lower())
 
+    def test_every_crack_source_maps_only_to_crack_candidate(self) -> None:
+        for category in ("alligator_crack", "longitudinal_crack", "transverse_crack"):
+            self.assertIn("Candidate for Crack", REVIEW_NOTES[category])
+            self.assertIn("human review", REVIEW_NOTES[category].lower())
+
     def test_display_name_keeps_suffix_when_truncated(self) -> None:
         label = display_name(Path("very-long-pavebench-source-image-name-for-human-review.jpg"))
         self.assertTrue(label.endswith(".jpg"))
