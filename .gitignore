@@ -9,6 +9,7 @@ reports/*.png
 reports/*.json
 reports/*.csv
 reports/v2_v1_normal_review/
+reports/v2_pavebench_review/
 !reports/experiment_record.csv
 !reports/*_learning_curve.png
 !reports/*_validation_confusion_matrix.png
