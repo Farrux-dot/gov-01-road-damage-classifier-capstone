@@ -6,6 +6,7 @@ labels, create a V2 split, combine sources, or train a model.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import random
 from pathlib import Path
@@ -20,10 +21,10 @@ REVIEW_NOTES = {
     "patch": "Candidate for Repaired_road; do not map automatically.",
     "negative": "Generic negative only; do not relabel as a specific road look-alike.",
 }
-PREVIEW_SIZE = (256, 256)
+PREVIEW_SIZE = (512, 512)
 MARGIN = 12
 LABEL_HEIGHT = 28
-COLUMNS = 3
+COLUMNS = 2
 MAX_DISPLAY_NAME_LENGTH = 32
 
 
@@ -62,7 +63,7 @@ def preview(path: Path) -> Image.Image:
 
 
 def contact_sheet(selected: list[Path], title: str) -> Image.Image:
-    """Build a three-column visual-review sheet."""
+    """Build a two-column sheet that preserves 512px source detail."""
     rows = max(1, (len(selected) + COLUMNS - 1) // COLUMNS)
     cell_width = PREVIEW_SIZE[0] + 2 * MARGIN
     cell_height = PREVIEW_SIZE[1] + LABEL_HEIGHT + 2 * MARGIN
@@ -79,6 +80,20 @@ def contact_sheet(selected: list[Path], title: str) -> Image.Image:
         sheet.paste(image, (left, top))
         draw.text((left, top + PREVIEW_SIZE[1] + 4), display_name(path), fill="black", font=font)
     return sheet
+
+
+def review_rows(selected: list[Path], category: str, classification_dir: Path) -> list[dict[str, str]]:
+    """Create blank, traceable human-review rows for the displayed images."""
+    return [
+        {
+            "source_category": category,
+            "source_file": path.name,
+            "source_path": path.relative_to(classification_dir).as_posix(),
+            "human_decision": "pending",
+            "reviewer_note": "",
+        }
+        for path in selected
+    ]
 
 
 def main() -> None:
@@ -103,6 +118,7 @@ def main() -> None:
         "review_status": "pending_human_review",
         "classes": {},
     }
+    all_review_rows: list[dict[str, str]] = []
 
     for category in REVIEW_CLASSES:
         candidates = category_image_paths(args.classification_dir, category)
@@ -116,11 +132,18 @@ def main() -> None:
             "review_note": REVIEW_NOTES[category],
             "selected_files": [path.name for path in selected],
         }
+        all_review_rows.extend(review_rows(selected, category, args.classification_dir))
 
     manifest_path = args.output_dir / "review_manifest.json"
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    queue_path = args.output_dir / "human_review_queue.csv"
+    with queue_path.open("w", newline="", encoding="utf-8") as queue_file:
+        writer = csv.DictWriter(queue_file, fieldnames=all_review_rows[0].keys())
+        writer.writeheader()
+        writer.writerows(all_review_rows)
     print(f"Created {len(REVIEW_CLASSES)} PaveBench contact sheets in {args.output_dir}")
     print(f"Saved review manifest: {manifest_path}")
+    print(f"Saved human review queue: {queue_path}")
 
 
 if __name__ == "__main__":

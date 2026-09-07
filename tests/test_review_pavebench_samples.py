@@ -4,7 +4,17 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.review_pavebench_samples import REVIEW_NOTES, category_image_paths, choose_samples, display_name
+from PIL import Image
+
+from src.review_pavebench_samples import (
+    PREVIEW_SIZE,
+    REVIEW_NOTES,
+    category_image_paths,
+    choose_samples,
+    display_name,
+    preview,
+    review_rows,
+)
 
 
 class PaveBenchVisualReviewTests(unittest.TestCase):
@@ -38,6 +48,20 @@ class PaveBenchVisualReviewTests(unittest.TestCase):
         label = display_name(Path("very-long-pavebench-source-image-name-for-human-review.jpg"))
         self.assertTrue(label.endswith(".jpg"))
         self.assertIn("...", label)
+
+    def test_preview_does_not_enlarge_a_small_source_image(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            image_path = Path(temporary_directory) / "small.jpg"
+            Image.new("RGB", (40, 30), "white").save(image_path)
+            self.assertEqual(preview(image_path).size, (40, 30))
+            self.assertEqual(PREVIEW_SIZE, (512, 512))
+
+    def test_review_rows_start_pending_and_keep_a_relative_path(self) -> None:
+        root = Path("dataset")
+        selected = [root / "train" / "pothole" / "example.jpg"]
+        rows = review_rows(selected, "pothole", root)
+        self.assertEqual(rows[0]["human_decision"], "pending")
+        self.assertEqual(rows[0]["source_path"], "train/pothole/example.jpg")
 
 
 if __name__ == "__main__":
