@@ -43,9 +43,12 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 
 - Active experimental branch: `codex/road-condition-v2`.
 - PaveBench crack sample review completed on 2026-09-08: 36 images reviewed with seed `42`; 16 marked `clear_keep` and 20 marked `unclear_exclude`.
+- PaveBench pothole/patch/negative sample review completed on 2026-09-08: 36 images reviewed with seed `42`; 17 marked `clear_keep` and 19 marked `unclear_exclude`.
+- All 12 sampled PaveBench `pothole` images were excluded because no clear pothole was confirmed. Future V2 image-level pothole candidates will come from the 624 eligible V1 training images; V1 validation and protected-test images remain reserved.
+- Eleven reviewed `patch` images remain candidates for `Repaired_road`; six reviewed `negative` images remain generic negative candidates and do not yet have specific road-condition labels.
 - Data Gate decision: do not bulk-accept the PaveBench crack folders. Only individually reviewed clear images may remain candidates for a later V2 pool.
 - No PaveBench image has been added to a combined V2 split and no V2 model has been trained from this review.
-- Next small task: visually review separate PaveBench samples for `pothole`, `patch`, and generic `negative` images.
+- Next small task: build one traceable candidate manifest from the eligible V1 pothole images and individually approved PaveBench crack/patch records, while keeping generic negatives separate until they receive specific human labels.
 
 ## EXTC4 evidence and defense readiness artifacts
 

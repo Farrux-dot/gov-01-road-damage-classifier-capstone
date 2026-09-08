@@ -129,6 +129,46 @@ This 36-image result describes the reviewed sample only. It is not an estimate
 of model accuracy, it does not prove that every unreviewed PaveBench image is
 good or bad, and it does not make V2 ready for training.
 
+## Completed pothole, patch, and negative sample review
+
+**Review completed:** 2026-09-08
+
+**Sampling rule:** 12 images from each source folder, selected with seed `42`
+
+**Total reviewed:** 36 images
+
+| Source folder | `clear_keep` | `unclear_exclude` | Clear share |
+| --- | ---: | ---: | ---: |
+| `pothole` | 0 | 12 | 0.0% |
+| `patch` | 11 | 1 | 91.7% |
+| `negative` | 6 | 6 | 50.0% |
+| **Total** | **17** | **19** | **47.2%** |
+
+The reviewer found cracks, rather than a clearly visible hole or depression,
+in several sampled images from the `pothole` folder. Every sampled pothole
+image was therefore excluded from the V2 pothole candidate pool. The completed
+review contained no pending decisions, unsupported decision words, or
+duplicate source paths.
+
+### Data Gate decision for these folders
+
+- **PaveBench `pothole`: do not use these reviewed images as pothole
+  candidates.** For future image-level V2 work, use only the 624 eligible V1
+  training images already labelled `Pothole`. V1 validation and protected-test
+  images remain reserved.
+- **PaveBench `patch`: keep only the 11 individually reviewed clear images as
+  candidates for `Repaired_road`.** This small sample does not justify accepting
+  the entire folder automatically.
+- **PaveBench `negative`: keep the 6 clear images as generic negative candidates
+  only.** They must not be converted automatically into `Normal_asphalt`,
+  `Shadow`, `Puddle`, `Manhole`, `Road_marking`, `Road_stain`, or
+  `Unpaved_road`. Those specific labels require a separate human decision.
+
+These image-level records contain no object boxes and therefore cannot support
+the planned object-detection experiment without separate manual annotation.
+Before training, all candidate sources still require one combined manifest,
+exact-duplicate checks, a leakage-safe split, and a completed V2 Data Gate.
+
 ## Boundary
 
 This review does not remove the 22 exact duplicates found in PaveBench's
