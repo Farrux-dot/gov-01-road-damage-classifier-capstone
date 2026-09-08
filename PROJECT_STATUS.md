@@ -39,6 +39,14 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 
 `experiment_dataset_v2_finetuning` is a separate experimental branch. Its protected-test result was weak, so it is closed and must not replace V1. The final assessed candidate remains V1 on `main`.
 
+### Current V2 data-preparation experiment
+
+- Active experimental branch: `codex/road-condition-v2`.
+- PaveBench crack sample review completed on 2026-09-08: 36 images reviewed with seed `42`; 16 marked `clear_keep` and 20 marked `unclear_exclude`.
+- Data Gate decision: do not bulk-accept the PaveBench crack folders. Only individually reviewed clear images may remain candidates for a later V2 pool.
+- No PaveBench image has been added to a combined V2 split and no V2 model has been trained from this review.
+- Next small task: visually review separate PaveBench samples for `pothole`, `patch`, and generic `negative` images.
+
 ## EXTC4 evidence and defense readiness artifacts
 
 - `docs/defense_pitch_outline.md` - complete five-minute route; personal timing remains pending.

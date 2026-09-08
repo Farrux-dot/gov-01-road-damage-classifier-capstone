@@ -97,9 +97,19 @@ For every candidate used, record:
 6. Ensure each label has enough varied examples before claiming that V2 can recognise it.
 7. Record ambiguous images as `Unclear_exclude`; do not force them into a class.
 
+## Completed PaveBench crack-sample decision
+
+On 2026-09-08, the deterministic crack-only review was finalized: 16 of 36
+sampled images were marked `clear_keep` and 20 were marked
+`unclear_exclude`. Because most reviewed images were not clear enough for the
+proposed use, the PaveBench crack classification folders are **not approved for
+automatic bulk inclusion**. See `docs/V2_PAVEBENCH_VISUAL_REVIEW.md` for the
+per-category evidence and limitations.
+
 ## Next approved task
 
-Perform a **PaveBench visual label review only**: create small contact sheets
-for `pothole`, `patch`, and `negative` examples so their quality and proposed
-V2 mapping can be reviewed by a human. Do not merge SVRDD and PaveBench, build
-a combined split, or train a model at this stage.
+Perform a separate **PaveBench visual label review only** for small samples of
+`pothole`, `patch`, and `negative` images. Check potholes directly, check
+whether `patch` honestly represents repaired road, and keep `negative` generic
+unless a person explicitly assigns an allowed look-alike label. Do not merge
+SVRDD and PaveBench, build a combined split, or train a model at this stage.

@@ -91,6 +91,44 @@ or repeats an image path. When all rows are valid, it creates one manifest for
 clear images and another for excluded images. It does not copy or relabel any
 raw image and it does not create train/validation/test splits.
 
+## Completed crack-sample result
+
+**Review completed:** 2026-09-08
+
+**Sampling rule:** 12 images from each crack source folder, selected with seed
+`42`
+
+**Total reviewed:** 36 images
+
+| Source folder | `clear_keep` | `unclear_exclude` | Clear share |
+| --- | ---: | ---: | ---: |
+| `alligator_crack` | 7 | 5 | 58.3% |
+| `longitudinal_crack` | 5 | 7 | 41.7% |
+| `transverse_crack` | 4 | 8 | 33.3% |
+| **Total** | **16** | **20** | **44.4%** |
+
+The completed CSV contained no pending decisions, unsupported decision words,
+duplicate source paths, or missing source images. The finalizer produced a
+16-row keep manifest and a 20-row exclusion manifest in the ignored review
+folder.
+
+### Data Gate decision for the crack folders
+
+**Do not bulk-accept the PaveBench crack classification folders.** In this
+small reproducible sample, 20 of 36 images were not clear enough for the human
+reviewer to confirm the proposed crack use. Therefore, a source folder name by
+itself is not sufficient evidence for including an image in the V2 `Crack`
+pool.
+
+Only individually reviewed `clear_keep` records may remain in a later crack
+candidate pool. `unclear_exclude` records must stay out. Before any kept image
+is used, the future combined pool still needs exact-duplicate removal, source
+traceability, a new leakage-safe split, and a completed V2 Data Gate.
+
+This 36-image result describes the reviewed sample only. It is not an estimate
+of model accuracy, it does not prove that every unreviewed PaveBench image is
+good or bad, and it does not make V2 ready for training.
+
 ## Boundary
 
 This review does not remove the 22 exact duplicates found in PaveBench's
