@@ -60,10 +60,14 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 - The deterministic 60-candidate review was completed on 2026-09-09. It contains 50 `approve_manhole` decisions and 10 `reject_unclear` decisions, with no pending, unsupported, or duplicate records. See `docs/v2_svrdd_manhole_crop_review_manifest.csv`.
 - The reviewer reported difficulty identifying some targets because of the small source resolution. Of the 50 approvals, 24 have a target below 20 pixels and 15 are below 16 pixels. All approvals are therefore retained only as `retain_candidate_not_training_ready` and carry the `low_resolution_review_difficulty` evidence flag.
 - Automated checks confirm that only `train.v2.jsonl` is accepted, region-balanced sampling is repeatable, and generated square crops remain inside image boundaries.
-- A stricter Round 2 manhole review workbook was generated on 2026-09-09 from unused source-training candidates only. It excludes all 60 Round 1 candidate IDs, requires a target minimum side of 28 pixels, and contains 60 pending rows balanced at 12 per source region. Selected targets range from 28 to 57 pixels.
+- A stricter Round 2 manhole review workbook was generated on 2026-09-09 from unused source-training candidates only. It excludes all 60 Round 1 candidate IDs, requires a target minimum side of 28 pixels, and contains 60 rows balanced at 12 per source region. Selected targets range from 28 to 57 pixels.
 - The 28-pixel rule is evidence-based: it is the strongest tested cutoff that still supplies at least 12 unused eligible candidates in every region. At 32 pixels, Chaoyang has only six candidates.
+- Round 2 human review was completed on 2026-09-09: 51 `approve_manhole`, 7 `reject_unclear`, and 2 `reject_not_manhole`, with no pending or unsupported decisions. Every rejected record has a reviewer note.
+- The two SVRDD review rounds now provide 101 approved manhole crop candidates from 97 unique source images. Geometry and source traceability are preserved in `docs/v2_svrdd_manhole_approved_manifest.csv`.
+- Four source images contribute two approved crops each. The approved manifest assigns one `split_group_id` per original image so related crops cannot be separated across future train, validation, and test sets.
+- These 101 records are approved candidates, not a final V2 split. The 50 Round 1 approvals retain their low-resolution warning, and no V2 model has been trained from these records.
 - No final V2 split has been created and no V2 model has been trained.
-- Next small task: complete the Round 2 workbook review and validate every decision before updating the source-traceable manhole manifest. Do not build the final V2 split or train a model from these provisional candidates yet.
+- Next small task: materialize the 101 approved crops in an ignored working folder, verify their dimensions and source-file availability, and keep crops from the same `split_group_id` together. Do not create the final V2 split or train a model until that check is complete.
 
 ## EXTC4 evidence and defense readiness artifacts
 

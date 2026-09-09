@@ -103,7 +103,21 @@ The first review showed that simply enlarging a small crop does not restore miss
 - The 28-pixel cutoff leaves at least 12 unused eligible candidates in every source region. A 32-pixel cutoff was not used because only six unused Chaoyang candidates met it.
 - The deterministic Round 2 sample contains 60 candidates: 12 each from Chaoyang, Dongcheng, Fengtai, Haidian, and Xicheng.
 - Selected targets range from 28 to 57 pixels on their shortest side.
-- Human decisions are pending. These records are not training-ready and are not part of a final split.
+- Human review was completed on 2026-09-09.
+
+| Human decision | Count |
+|---|---:|
+| `approve_manhole` | 51 |
+| `reject_unclear` | 7 |
+| `reject_not_manhole` | 2 |
+| Pending or unsupported decisions | 0 |
+
+- Reviewed workbook: `SVRDD_Manhole_Crop_Review_Round2.xlsx`
+- Reviewed workbook SHA-256: `CFBC39FCC918F1F5A26F209A287961706FD07D0273D2E0C35DD2FCB514B09966`
+- Every rejected row has a reviewer note.
+- Candidate IDs are unique, all source paths remain inside the SVRDD source training split, and no Round 2 candidate repeats a Round 1 candidate ID.
+- The reviewer excluded examples affected by darkness, shadows, unclear objects, or incorrect source annotations instead of forcing uncertain manhole labels.
+- The 51 approvals remain candidates only. They are not part of a final split and have not been used to train a model.
 
 Round 2 can be reproduced with:
 
@@ -121,12 +135,42 @@ Round 2 can be reproduced with:
   --minimum-review-target-side 28
 ```
 
+## Consolidated approved candidates
+
+The two completed review rounds contain 120 reviewed crops in total:
+
+| Result | Count |
+|---|---:|
+| Approved manhole candidates | 101 |
+| Unclear exclusions | 17 |
+| Not-manhole exclusions | 2 |
+| Unique source images among approvals | 97 |
+
+The approved-only manifest is `docs/v2_svrdd_manhole_approved_manifest.csv`. It joins each human decision to its generated target box and crop coordinates, so the accepted crop can be reproduced from the unchanged raw image.
+
+Four original road images contribute two approved crops each. The manifest therefore includes `split_group_id`. Every crop from the same original road image must stay in the same future train, validation, or test split. This prevents the model from seeing one crop from an image during training and a nearly identical crop from the same image during evaluation.
+
+Round 1's 50 approvals keep the flag `low_resolution_review_difficulty`. Round 2's 51 approvals keep the flag `clearer_target_round2_review`. All 101 rows have the status `approved_candidate_not_final_split`; approval does not mean that a final V2 dataset or trained model already exists.
+
+The approved manifest can be rebuilt after the two generated review manifests are available outside Git:
+
+```powershell
+.\.venv\Scripts\python.exe -B src\finalize_v2_manhole_reviews.py `
+  --round1-decisions docs\v2_svrdd_manhole_crop_review_manifest.csv `
+  --round1-generated <round1-review-output>\manhole_crop_review_manifest.csv `
+  --round2-decisions docs\v2_svrdd_manhole_crop_review_round2_manifest.csv `
+  --round2-generated <round2-review-output>\review_manifest_round2.csv `
+  --approved-output docs\v2_svrdd_manhole_approved_manifest.csv
+```
+
+The finalizer stops when a review is incomplete, a rejected row has no note, candidate IDs overlap between rounds, generated crop geometry is missing, or a source path leaves the SVRDD source-training boundary.
+
 ## Limitations
 
 - A source annotation can still be wrong even when it passes the automated prefilter.
 - Cropping can remove useful road context.
 - The completed workbook covers 60 of 706 eligible candidates, not the entire pool.
-- Round 2 covers another 60 candidates but remains pending human review.
+- The two review rounds cover 120 candidate boxes, not all 706 candidates eligible after automated filtering.
 - Low-resolution targets can be difficult for a human to verify and may not represent the intended high-resolution user images.
 - Approval confirms only that the crop is a useful manhole candidate; it does not prove model performance.
 - The source card states CC BY 4.0; its terms must be rechecked before redistribution.
