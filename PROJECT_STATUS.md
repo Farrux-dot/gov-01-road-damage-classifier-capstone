@@ -66,8 +66,13 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 - The two SVRDD review rounds now provide 101 approved manhole crop candidates from 97 unique source images. Geometry and source traceability are preserved in `docs/v2_svrdd_manhole_approved_manifest.csv`.
 - Four source images contribute two approved crops each. The approved manifest assigns one `split_group_id` per original image so related crops cannot be separated across future train, validation, and test sets.
 - These 101 records are approved candidates, not a final V2 split. The 50 Round 1 approvals retain their low-resolution warning, and no V2 model has been trained from these records.
+- The SVRDD repaired-road audit was completed on 2026-09-09 using source-training annotations only. The automatic prefilter found 5,089 repaired-road boxes: 2,685 clear-context candidates, 1,765 held because the target was smaller than 28 pixels, and 639 held because another labelled condition materially entered the contextual crop.
+- Two repaired-road review rounds contain 100 unique candidates. Round 1 produced 51 `approve_repaired_road`, 7 `reject_unclear`, and 2 `wrong_box` decisions. The targeted Round 2 review produced 40 approvals from 20 additional Xicheng examples and 20 multi-patch box-completeness examples.
+- The combined sample approval rate is 91%. This is review evidence, not a model metric and not proof that every unreviewed source annotation is correct.
+- The audit retains 91 individually human-approved candidates and 2,585 unreviewed candidates marked honestly as `source_labeled_audit_supported`. It excludes 9 human-rejected candidates and continues to hold the 2,404 candidates that failed the automatic prefilter.
+- The complete traceability record is documented in `docs/V2_REPAIRED_ROAD_REVIEW_METHOD.md` and the `docs/v2_svrdd_repaired_road_*_manifest.csv` files. Every record uses the original source image as its `split_group_id` to prevent future split leakage.
 - No final V2 split has been created and no V2 model has been trained.
-- Next small task: materialize the 101 approved crops in an ignored working folder, verify their dimensions and source-file availability, and keep crops from the same `split_group_id` together. Do not create the final V2 split or train a model until that check is complete.
+- Next small task: materialize the 2,676 retained repaired-road candidates in an ignored working folder, verify source-file availability and crop geometry, and keep records from the same `split_group_id` together. Do not create the final V2 split or train a model until that check is complete.
 
 ## EXTC4 evidence and defense readiness artifacts
 
