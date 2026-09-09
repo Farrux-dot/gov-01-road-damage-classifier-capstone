@@ -56,8 +56,11 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 - The inventory keeps all V1 validation/protected-test images and all SVRDD source validation/test images out of the candidate pool. It found zero exact SHA-256 duplicate groups across the 6,733 included records.
 - Of the candidates, 6,109 have object boxes; the 624 V1 pothole images have image-level labels only and cannot support object detection without new box annotations.
 - Important multi-class blocker: the provisional one-label priority rule produces only one primary `manhole_cover` image even though 1,688 candidate images contain a manhole label and 2,517 manhole boxes exist. Multi-class split construction is paused until this collapse is resolved honestly.
+- A source-training-only manhole crop-review generator was completed on 2026-09-09. It found 2,517 manhole boxes, held 1,132 because the target was smaller than 12 pixels on its shortest side, held 679 because another labelled condition materially entered the crop, and left 706 candidates for visual review. See `docs/V2_MANHOLE_CROP_REVIEW_METHOD.md`.
+- A deterministic 60-candidate review workbook was generated with seed `42`, balanced at 12 candidates per SVRDD region. Every decision is still `pending`; no crop has been accepted as training data.
+- Automated checks confirm that only `train.v2.jsonl` is accepted, region-balanced sampling is repeatable, and generated square crops remain inside image boundaries.
 - No final V2 split has been created and no V2 model has been trained.
-- Next small task: define and review a task-specific method for preserving honest `manhole_cover` multi-class examples (for example, box-derived single-condition crops), then complete the missing look-alike labels before final leakage-safe splitting.
+- Next small task: complete and validate the 60-row manhole crop-review workbook. Only individually approved crops may become candidates; after that, complete the missing look-alike labels before final leakage-safe splitting.
 
 ## EXTC4 evidence and defense readiness artifacts
 
