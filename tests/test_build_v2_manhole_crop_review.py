@@ -5,6 +5,7 @@ from pathlib import Path
 
 from src.build_v2_manhole_crop_review import (
     build_candidates,
+    load_candidate_ids,
     select_stratified_sample,
     square_crop,
 )
@@ -62,6 +63,42 @@ class ManholeCropReviewTests(unittest.TestCase):
         second = select_stratified_sample(records, sample_size=6, seed=42)
         self.assertEqual([row["candidate_id"] for row in first], [row["candidate_id"] for row in second])
         self.assertEqual({region: sum(row["region"] == region for row in first) for region in "ABC"}, {"A": 2, "B": 2, "C": 2})
+
+    def test_round_two_selection_excludes_reviewed_and_small_candidates(self):
+        records = []
+        for region in ("A", "B"):
+            for index, target_side in enumerate((20, 28, 36)):
+                records.append(
+                    {
+                        "candidate_id": f"{region}-{index}",
+                        "region": region,
+                        "target_min_side_px": target_side,
+                        "prefilter_status": "review_candidate_clear_context",
+                    }
+                )
+        selected = select_stratified_sample(
+            records,
+            sample_size=2,
+            seed=42,
+            excluded_candidate_ids={"A-2"},
+            minimum_review_target_side=28,
+        )
+        selected_ids = {row["candidate_id"] for row in selected}
+        self.assertNotIn("A-2", selected_ids)
+        self.assertTrue(all(row["target_min_side_px"] >= 28 for row in selected))
+        self.assertEqual({row["region"] for row in selected}, {"A", "B"})
+
+    def test_load_candidate_ids_validates_manifest(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            valid_manifest = root / "valid.csv"
+            valid_manifest.write_text("candidate_id,decision\nA-1,approve\nA-2,reject\n", encoding="utf-8")
+            self.assertEqual(load_candidate_ids(valid_manifest), {"A-1", "A-2"})
+
+            invalid_manifest = root / "invalid.csv"
+            invalid_manifest.write_text("sample_id\n1\n", encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "candidate_id"):
+                load_candidate_ids(invalid_manifest)
 
 
 if __name__ == "__main__":

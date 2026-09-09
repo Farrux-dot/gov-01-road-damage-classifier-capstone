@@ -180,11 +180,22 @@ def select_stratified_sample(
     records: list[dict[str, Any]],
     sample_size: int,
     seed: int,
+    excluded_candidate_ids: set[str] | None = None,
+    minimum_review_target_side: float = 0.0,
 ) -> list[dict[str, Any]]:
     """Select a repeatable, region-balanced sample from review candidates."""
     if sample_size <= 0:
         raise ValueError("sample_size must be positive")
-    eligible = [record for record in records if record["prefilter_status"] == "review_candidate_clear_context"]
+    if minimum_review_target_side < 0:
+        raise ValueError("minimum_review_target_side must not be negative")
+    excluded_candidate_ids = excluded_candidate_ids or set()
+    eligible = [
+        record
+        for record in records
+        if record["prefilter_status"] == "review_candidate_clear_context"
+        and str(record["candidate_id"]) not in excluded_candidate_ids
+        and float(record.get("target_min_side_px", 0.0)) >= minimum_review_target_side
+    ]
     if sample_size > len(eligible):
         raise ValueError(f"Requested {sample_size} samples but only {len(eligible)} are eligible")
     by_region: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -205,6 +216,24 @@ def select_stratified_sample(
         if not made_progress:
             break
     return selected
+
+
+def load_candidate_ids(manifest_path: Path | None) -> set[str]:
+    """Load candidate IDs from an earlier review manifest."""
+    if manifest_path is None:
+        return set()
+    if not manifest_path.is_file():
+        raise FileNotFoundError(f"Missing exclusion manifest: {manifest_path}")
+    with manifest_path.open(newline="", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        if not reader.fieldnames or "candidate_id" not in reader.fieldnames:
+            raise ValueError("Exclusion manifest must contain a candidate_id column")
+        candidate_ids = {
+            str(row.get("candidate_id", "")).strip()
+            for row in reader
+            if str(row.get("candidate_id", "")).strip()
+        }
+    return candidate_ids
 
 
 def _fit_image(image: Image.Image, size: tuple[int, int], allow_enlarge: bool) -> Image.Image:
@@ -293,7 +322,12 @@ def write_review_manifest(
     return rows
 
 
-def summarize(records: list[dict[str, Any]], selected: list[dict[str, Any]]) -> dict[str, Any]:
+def summarize(
+    records: list[dict[str, Any]],
+    selected: list[dict[str, Any]],
+    excluded_candidate_count: int = 0,
+    minimum_review_target_side: float = 0.0,
+) -> dict[str, Any]:
     """Create data-review evidence, not model performance evidence."""
     return {
         "source_split": "train",
@@ -310,6 +344,12 @@ def summarize(records: list[dict[str, Any]], selected: list[dict[str, Any]]) -> 
         ),
         "review_sample_records": len(selected),
         "review_sample_by_region": dict(sorted(Counter(str(record["region"]) for record in selected).items())),
+        "excluded_previous_candidate_count": excluded_candidate_count,
+        "minimum_review_target_side_px": minimum_review_target_side,
+        "selected_target_min_side_px": {
+            "minimum": min((float(record["target_min_side_px"]) for record in selected), default=None),
+            "maximum": max((float(record["target_min_side_px"]) for record in selected), default=None),
+        },
         "human_review_status": "pending",
         "training_status": "not_approved",
     }
@@ -325,12 +365,26 @@ def main() -> None:
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--sample-size", type=int, default=60)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--exclude-manifest", type=Path)
+    parser.add_argument("--minimum-review-target-side", type=float, default=0.0)
     args = parser.parse_args()
 
     records = build_candidates(args.repo_root, args.annotations, args.images_root)
-    selected = select_stratified_sample(records, args.sample_size, args.seed)
+    excluded_candidate_ids = load_candidate_ids(args.exclude_manifest)
+    selected = select_stratified_sample(
+        records,
+        args.sample_size,
+        args.seed,
+        excluded_candidate_ids=excluded_candidate_ids,
+        minimum_review_target_side=args.minimum_review_target_side,
+    )
     write_review_manifest(selected, args.manifest, args.previews_dir)
-    report = summarize(records, selected)
+    report = summarize(
+        records,
+        selected,
+        excluded_candidate_count=len(excluded_candidate_ids),
+        minimum_review_target_side=args.minimum_review_target_side,
+    )
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report, indent=2))

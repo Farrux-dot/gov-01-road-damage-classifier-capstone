@@ -56,7 +56,7 @@ From the repository root:
 ```powershell
 .\.venv\Scripts\python.exe -B src\build_v2_manhole_crop_review.py `
   --repo-root . `
-  --annotations data\raw\v2\svrdd\extracted\train\train.v2.jsonl `
+  --annotations data\processed\v2\svrdd\annotations\train.v2.jsonl `
   --images-root data\raw\v2\svrdd\extracted\train `
   --manifest <review-output>\manhole_crop_review_manifest.csv `
   --previews-dir <review-output>\previews `
@@ -67,14 +67,66 @@ From the repository root:
 
 `<review-output>` is deliberately outside Git because the preview images and workbook are review artifacts, not source code.
 
+## Completed review result
+
+The 60-row workbook was completed and validated on 2026-09-09.
+
+- Reviewed workbook: `SVRDD_Manhole_Crop_Review.xlsx`
+- Reviewed workbook SHA-256: `98B708E64D8A0253DE9594BD56D6462A23219FB8798C4AD2F7F2262C0B630660`
+
+| Human decision | Count |
+|---|---:|
+| `approve_manhole` | 50 |
+| `reject_unclear` | 10 |
+| Pending or unsupported decisions | 0 |
+
+All rejected rows contain reviewer notes. Candidate IDs are unique, and every source path remains inside the SVRDD source training split.
+
+The reviewer reported that the small source resolution made several manholes difficult to recognize. The target-size evidence supports that concern:
+
+- Among the 50 approved candidates, the target minimum side ranges from 12 to 68 pixels, with a median of 20 pixels.
+- Of the approved candidates, 24 have a target smaller than 20 pixels and 15 are smaller than 16 pixels.
+- Nine of the ten unclear rejections have a target smaller than 20 pixels.
+
+The decision manifest therefore marks all 50 approvals as `retain_candidate_not_training_ready` and adds the evidence flag `low_resolution_review_difficulty`. The ten unclear records are excluded from the candidate pool.
+
 ## Current decision
 
-**WAIT.** The 60-row workbook still requires human decisions. Do not create an accepted manhole crop set, construct a final split, or train a V2 model until the completed workbook is returned and validated.
+**CONDITIONAL RETENTION.** Keep the 50 human-approved records as source-traceable candidates, not final training data. Do not create a final split or train a V2 model from them yet. First address whether the source resolution is adequate for the intended high-resolution upload workflow or obtain clearer manhole examples.
+
+## Round 2 clearer-target review
+
+The first review showed that simply enlarging a small crop does not restore missing visual detail. A second review workbook was therefore generated from unused SVRDD source-training candidates with a stricter size rule.
+
+- All 60 candidates from Round 1 are excluded by candidate ID.
+- The target box must be at least 28 pixels on its shortest side.
+- The 28-pixel cutoff leaves at least 12 unused eligible candidates in every source region. A 32-pixel cutoff was not used because only six unused Chaoyang candidates met it.
+- The deterministic Round 2 sample contains 60 candidates: 12 each from Chaoyang, Dongcheng, Fengtai, Haidian, and Xicheng.
+- Selected targets range from 28 to 57 pixels on their shortest side.
+- Human decisions are pending. These records are not training-ready and are not part of a final split.
+
+Round 2 can be reproduced with:
+
+```powershell
+.\.venv\Scripts\python.exe -B src\build_v2_manhole_crop_review.py `
+  --repo-root . `
+  --annotations data\processed\v2\svrdd\annotations\train.v2.jsonl `
+  --images-root data\raw\v2\svrdd\extracted\train `
+  --manifest <review-output>\review_manifest_round2.csv `
+  --previews-dir <review-output>\previews `
+  --report <review-output>\review_report_round2.json `
+  --sample-size 60 `
+  --seed 42 `
+  --exclude-manifest docs\v2_svrdd_manhole_crop_review_manifest.csv `
+  --minimum-review-target-side 28
+```
 
 ## Limitations
 
 - A source annotation can still be wrong even when it passes the automated prefilter.
 - Cropping can remove useful road context.
-- The first workbook covers 60 of 706 eligible candidates, not the entire pool.
+- The completed workbook covers 60 of 706 eligible candidates, not the entire pool.
+- Round 2 covers another 60 candidates but remains pending human review.
+- Low-resolution targets can be difficult for a human to verify and may not represent the intended high-resolution user images.
 - Approval confirms only that the crop is a useful manhole candidate; it does not prove model performance.
 - The source card states CC BY 4.0; its terms must be rechecked before redistribution.

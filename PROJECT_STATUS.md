@@ -57,10 +57,13 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 - Of the candidates, 6,109 have object boxes; the 624 V1 pothole images have image-level labels only and cannot support object detection without new box annotations.
 - Important multi-class blocker: the provisional one-label priority rule produces only one primary `manhole_cover` image even though 1,688 candidate images contain a manhole label and 2,517 manhole boxes exist. Multi-class split construction is paused until this collapse is resolved honestly.
 - A source-training-only manhole crop-review generator was completed on 2026-09-09. It found 2,517 manhole boxes, held 1,132 because the target was smaller than 12 pixels on its shortest side, held 679 because another labelled condition materially entered the crop, and left 706 candidates for visual review. See `docs/V2_MANHOLE_CROP_REVIEW_METHOD.md`.
-- A deterministic 60-candidate review workbook was generated with seed `42`, balanced at 12 candidates per SVRDD region. Every decision is still `pending`; no crop has been accepted as training data.
+- The deterministic 60-candidate review was completed on 2026-09-09. It contains 50 `approve_manhole` decisions and 10 `reject_unclear` decisions, with no pending, unsupported, or duplicate records. See `docs/v2_svrdd_manhole_crop_review_manifest.csv`.
+- The reviewer reported difficulty identifying some targets because of the small source resolution. Of the 50 approvals, 24 have a target below 20 pixels and 15 are below 16 pixels. All approvals are therefore retained only as `retain_candidate_not_training_ready` and carry the `low_resolution_review_difficulty` evidence flag.
 - Automated checks confirm that only `train.v2.jsonl` is accepted, region-balanced sampling is repeatable, and generated square crops remain inside image boundaries.
+- A stricter Round 2 manhole review workbook was generated on 2026-09-09 from unused source-training candidates only. It excludes all 60 Round 1 candidate IDs, requires a target minimum side of 28 pixels, and contains 60 pending rows balanced at 12 per source region. Selected targets range from 28 to 57 pixels.
+- The 28-pixel rule is evidence-based: it is the strongest tested cutoff that still supplies at least 12 unused eligible candidates in every region. At 32 pixels, Chaoyang has only six candidates.
 - No final V2 split has been created and no V2 model has been trained.
-- Next small task: complete and validate the 60-row manhole crop-review workbook. Only individually approved crops may become candidates; after that, complete the missing look-alike labels before final leakage-safe splitting.
+- Next small task: complete the Round 2 workbook review and validate every decision before updating the source-traceable manhole manifest. Do not build the final V2 split or train a model from these provisional candidates yet.
 
 ## EXTC4 evidence and defense readiness artifacts
 
