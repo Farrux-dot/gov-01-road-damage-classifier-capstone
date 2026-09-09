@@ -52,7 +52,12 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 - Alligator may continue as a conditional `Crack` candidate. Crack must not be bulk-accepted. Only individually approved Patch records remain `Repaired_road` candidates. The PaveBench pothole class remains excluded; eligible V1 training pothole images remain the pothole source.
 - The combined detection-review manifest contains 109 reviewed candidates and preserves two Round 1 evidence-quality flags without silently changing the original human decisions.
 - No PaveBench image has been added to a combined V2 split and no V2 model has been trained from this review.
-- Next small task: build one source-traceable V2 candidate inventory from eligible V1 training potholes and approved source records, while keeping generic negatives separate until they receive specific human labels.
+- The source-traceable pre-split candidate inventory was completed on 2026-09-09. It contains 6,733 records: 6,000 SVRDD source-training records, 624 eligible V1 training potholes, and 109 individually approved PaveBench detection records. See `docs/V2_CANDIDATE_INVENTORY.md` and `docs/v2_candidate_inventory.csv`.
+- The inventory keeps all V1 validation/protected-test images and all SVRDD source validation/test images out of the candidate pool. It found zero exact SHA-256 duplicate groups across the 6,733 included records.
+- Of the candidates, 6,109 have object boxes; the 624 V1 pothole images have image-level labels only and cannot support object detection without new box annotations.
+- Important multi-class blocker: the provisional one-label priority rule produces only one primary `manhole_cover` image even though 1,688 candidate images contain a manhole label and 2,517 manhole boxes exist. Multi-class split construction is paused until this collapse is resolved honestly.
+- No final V2 split has been created and no V2 model has been trained.
+- Next small task: define and review a task-specific method for preserving honest `manhole_cover` multi-class examples (for example, box-derived single-condition crops), then complete the missing look-alike labels before final leakage-safe splitting.
 
 ## EXTC4 evidence and defense readiness artifacts
 
