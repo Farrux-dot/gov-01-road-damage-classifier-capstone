@@ -71,8 +71,12 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 - The combined sample approval rate is 91%. This is review evidence, not a model metric and not proof that every unreviewed source annotation is correct.
 - The audit retains 91 individually human-approved candidates and 2,585 unreviewed candidates marked honestly as `source_labeled_audit_supported`. It excludes 9 human-rejected candidates and continues to hold the 2,404 candidates that failed the automatic prefilter.
 - The complete traceability record is documented in `docs/V2_REPAIRED_ROAD_REVIEW_METHOD.md` and the `docs/v2_svrdd_repaired_road_*_manifest.csv` files. Every record uses the original source image as its `split_group_id` to prevent future split leakage.
+- All 2,676 retained repaired-road candidates were materialized as contextual RGB crops in the Git-ignored `data/processed/` workspace. The crops come from 1,513 source images and preserve exactly 1,513 source-based split groups. See `docs/V2_REPAIRED_ROAD_MATERIALIZATION.md` and `docs/v2_svrdd_repaired_road_materialization_manifest.csv`.
+- File and geometry checks completed successfully: 2,676 manifest rows match 2,676 JPEG files, crop sides range from 128 to 1,024 pixels, and no source image or candidate record is missing.
+- Exact SHA-256 checking found 23 duplicate crop groups containing 24 redundant crops beyond the first. Every duplicate remains inside one source image and one split group, so no cross-group leakage was found. Deduplication is still required to avoid overweighting repeated crop content during classification training.
+- The provisional unique-content count would be 2,652 after retaining one crop per exact hash. This is not yet a final split count.
 - No final V2 split has been created and no V2 model has been trained.
-- Next small task: materialize the 2,676 retained repaired-road candidates in an ignored working folder, verify source-file availability and crop geometry, and keep records from the same `split_group_id` together. Do not create the final V2 split or train a model until that check is complete.
+- Next small task: create a deterministic classification deduplication decision, then generate and review a targeted visual-quality sample from the remaining repaired-road crops. Do not create the final combined V2 split or train a model until that review is complete.
 
 ## EXTC4 evidence and defense readiness artifacts
 
