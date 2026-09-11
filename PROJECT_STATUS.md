@@ -80,7 +80,12 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 - The final unique-quality evidence retains 2,643 candidates and excludes the 9 human-rejected unclear candidates. Of the retained candidates, 142 now have individual human approval and 2,501 remain honestly marked as source-labelled audit-supported candidates.
 - See `docs/V2_REPAIRED_ROAD_DEDUPLICATION_AND_QUALITY_REVIEW.md`, `docs/v2_svrdd_repaired_road_unique_quality_review_manifest.csv`, `docs/v2_svrdd_repaired_road_unique_keep_manifest.csv`, and `docs/v2_svrdd_repaired_road_unique_quality_exclusions.csv`.
 - No image files were deleted. No final V2 split has been created and no V2 model has been trained.
-- Next small task: compare the retained candidate counts across all approved V2 classes and define the leakage-safe group split plan before creating any final combined split.
+- V2 class coverage was reconciled on 2026-09-11 in `docs/V2_CLASS_COVERAGE_REPORT.md`. Counts are separated into full images, positive-image labels, detection objects, reviewed crops, and original-image split groups so unlike units are not added together.
+- The ten-class multi-class, nine-output multi-label, and nine-class detection targets remain blocked. Accepted dedicated examples are still missing for unpaved road, shadow, puddle, road marking, road stain, and normal asphalt.
+- Current reviewed crop coverage is 2,643 repaired-road crops from 1,508 source-image groups and 101 approved manhole crops from 97 source-image groups. The 50 Round 1 manhole approvals retain their low-resolution warning.
+- Current pre-split full-image coverage for the four represented conditions is 1,096 pothole, 4,005 crack, 1,631 repaired-road, and one manhole primary-label record. The single manhole count is caused by the priority rule; it is not the available manhole crop count.
+- Current detection coverage is 679 pothole, 7,433 crack, 5,100 repaired-road, and 2,517 manhole candidate objects. The 624 V1 pothole images remain image-level only and cannot support detection without new boxes.
+- Next small task: define and verify a leakage-safe group split plan for the four currently represented conditions without creating the final split or treating the six missing labels as negatives.
 
 ## EXTC4 evidence and defense readiness artifacts
 
