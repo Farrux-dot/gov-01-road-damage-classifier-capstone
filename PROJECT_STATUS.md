@@ -85,7 +85,11 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 - Current reviewed crop coverage is 2,643 repaired-road crops from 1,508 source-image groups and 101 approved manhole crops from 97 source-image groups. The 50 Round 1 manhole approvals retain their low-resolution warning.
 - Current pre-split full-image coverage for the four represented conditions is 1,096 pothole, 4,005 crack, 1,631 repaired-road, and one manhole primary-label record. The single manhole count is caused by the priority rule; it is not the available manhole crop count.
 - Current detection coverage is 679 pothole, 7,433 crack, 5,100 repaired-road, and 2,517 manhole candidate objects. The 624 V1 pothole images remain image-level only and cannot support detection without new boxes.
-- Next small task: define and verify a leakage-safe group split plan for the four currently represented conditions without creating the final split or treating the six missing labels as negatives.
+- A separate 60-image PaveBench negative look-alike sample was reviewed on 2026-09-11. None clearly matched the six missing labels, so all 60 sampled records were excluded and zero were accepted. This does not prove the status of every unreviewed PaveBench negative image.
+- RAD version 3 was downloaded and structurally audited on 2026-09-11 as a possible `Unpaved_road` source. The extracted labelled section contains 8,394 readable 1920 x 1080 images and matching YOLO labels. Its `UnsurfacedRoad` class contains 593 boxes in 539 images.
+- RAD's source-provided splits are not safe to reuse: 20 exact duplicate groups cross its train, validation, and test folders. A later split must be rebuilt after acceptance and grouped duplicate removal.
+- A deterministic 60-image RAD `UnsurfacedRoad` workbook was prepared from source-training records only. RAD remains a candidate rather than accepted training data until the human mapping and quality review is completed.
+- Next small task: complete the 60-image RAD review, record the decisions, and decide whether `UnsurfacedRoad` can honestly supply the V2 `Unpaved_road` class. Do not create a final split or train a V2 model yet.
 
 ## EXTC4 evidence and defense readiness artifacts
 

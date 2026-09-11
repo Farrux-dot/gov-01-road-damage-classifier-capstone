@@ -12,6 +12,8 @@ reports/v2_v1_normal_review/
 reports/v2_pavebench_review/
 reports/v2_pavebench_full_size_review/
 reports/v2_pavebench_crack_review/
+reports/v2_pavebench_lookalike_discovery/
+reports/v2_rad_unsurfaced_review/
 !reports/experiment_record.csv
 !reports/*_learning_curve.png
 !reports/*_validation_confusion_matrix.png
