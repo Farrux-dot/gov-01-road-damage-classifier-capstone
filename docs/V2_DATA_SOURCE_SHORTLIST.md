@@ -24,7 +24,7 @@ Images must not be downloaded into Git. Store raw archives and raw images in an 
 | [RDD2022 official dataset record](https://figshare.com/articles/dataset/RDD2022_-_The_multi-national_Road_Damage_Dataset_released_through_CRDDC_2022/21431547) | The official Figshare record lists CC BY 4.0. It reports 47,420 road images from six countries, over 55,000 damage instances, and four damage types: longitudinal crack, transverse crack, alligator crack, and pothole. The full archive is 12.36 GB. | `Pothole`, `Crack` | Object detection; multi-label after a documented label conversion | **Deferred.** Its host was too slow during the 2026-09-01 attempted download. Do not use the country links that returned HTTP 403. |
 | [N-RDD2024 official dataset record](https://data.mendeley.com/datasets/27c8pwsd6v/5) | The official Mendeley record lists CC BY 4.0, ten road-condition labels, and a 6.58 GB complete download. | `Pothole`, `Crack`, `Manhole`, `Repaired_road`, `Road_marking` look-alikes | Object detection; multi-label after conversion | **Deferred.** The host throttled the complete download; it is not the first V2 acquisition. |
 | [PaveBench](https://huggingface.co/datasets/VVQNN/PaveBench) | Dataset card lists 20,124 high-resolution 512 x 512 pavement images for its visual-perception subset; image-level labels, detection boxes, and segmentation masks; and CC BY-NC-SA 4.0. Its visual classes are pothole, three crack types, patch, and negative. It also retains hard distractors such as pavement stains, tree shadows, and road markings. | `Pothole`, `Crack`, `Repaired_road` (from `patch` after visual review), and candidate hard-negative images | Image classification and object-detection supplement | **Downloaded on 2026-09-06; structural preflight passed with warnings.** The downloaded classification and detection tasks contain 20,124 classification images and 11,857 readable detection images with valid COCO alignment. However, 22 exact duplicate groups cross the source detection splits. Do not use its supplied splits as V2 evaluation; rebuild a duplicate-free split later. It has no `Manhole`, `Unpaved_road`, `Shadow`, `Puddle`, `Road_stain`, or `Road_marking` ground-truth class. Do not turn its generic `negative` images into those labels automatically. Its non-commercial, share-alike licence must be retained in project documentation. |
-| [RAD Road Anomaly Detection](https://www.kaggle.com/datasets/rohitsuresh15/radroad-anomaly-detection) | Public Kaggle version 3 lists the MIT licence. The extracted labelled image section contains 8,394 readable 1920 x 1080 images with matching YOLO files. The source classes are HMV, LMV, Pedestrian, RoadDamages, SpeedBump, and UnsurfacedRoad. | Candidate `Unpaved_road` only, after human confirmation of `UnsurfacedRoad` | Multi-class or multi-label supplement; its boxes are not suitable for a separate unpaved-surface object detector | **Downloaded and structurally audited on 2026-09-11.** Audit found 593 `UnsurfacedRoad` boxes in 539 images and 20 exact-duplicate groups crossing source splits. The source splits must not be reused. A deterministic 60-image source-training review is pending; RAD is not yet accepted into the V2 inventory. |
+| [RAD Road Anomaly Detection](https://www.kaggle.com/datasets/rohitsuresh15/radroad-anomaly-detection) | Public Kaggle version 3 lists the MIT licence. The extracted labelled image section contains 8,394 readable 1920 x 1080 images with matching YOLO files. The source classes are HMV, LMV, Pedestrian, RoadDamages, SpeedBump, and UnsurfacedRoad. | No accepted V2 label | Structural-audit reference only | **Rejected for current V2 use on 2026-09-11.** The 60-image review showed a semantic mismatch: `UnsurfacedRoad` boxes can mark dirt shoulders or road edges while the main road remains asphalt. The sample also contains repeated scenes from the same videos. No RAD image is accepted into the V2 inventory. |
 | Manually collected or permission-based images | License and consent depend on the individual source; must be recorded per image set. | `Shadow`, `Puddle`, `Road_marking`, `Road_stain`, `Repaired_road`, `Unpaved_road`, clean `Normal_asphalt` | All three V2 approaches after manual labeling | **Required supplement.** These look-alike categories are essential to prevent false pothole alerts. |
 
 ## How each model approach will receive data
@@ -65,7 +65,7 @@ one falsely complete dataset.
 | `Crack` | Available in audited SVRDD. PaveBench may later add high-resolution diversity after its own audit. |
 | `Repaired_road` | Available in audited SVRDD. PaveBench `patch` may map here after visual and format audit. |
 | `Manhole` | Available in audited SVRDD. PaveBench does not provide it. |
-| `Unpaved_road` | RAD supplies 539 candidate images labelled `UnsurfacedRoad`, but a 60-image human review is still pending. The class remains blocked until that review confirms the mapping and image quality. |
+| `Unpaved_road` | **Open gap.** RAD was reviewed and rejected because its boxes can mark localized unsurfaced shoulders beside asphalt roads rather than a fully unpaved driving surface. |
 | `Shadow`, `Puddle`, `Road_stain`, `Road_marking` | **Open gap.** These require explicit manual labels. PaveBench negative images are only candidates for manual review, not ground truth for a named look-alike label. |
 | `Normal_asphalt` | **Open gap.** Must be manually reviewed as clear asphalt; it cannot be inferred from a generic negative label. |
 
@@ -124,16 +124,18 @@ all 8,394 images and YOLO label files. The audit also found 20 exact duplicate
 groups crossing the supplier's train, validation, and test folders, so a later
 V2 split must be rebuilt by content and source group.
 
-Only the source class `UnsurfacedRoad` is being considered, as a possible map
-to `Unpaved_road`. The broad `RoadDamages` label must not be converted into a
-specific pothole or crack label. A deterministic 60-image review workbook was
-prepared from source-training records only. No RAD image has entered the V2
-candidate inventory and no model has been trained from RAD.
+The deterministic 60-image review found 33 preliminary keep choices, 26
+exclusions, and one pending choice. Those preliminary choices are not accepted
+because the final human review identified a semantic mismatch: many scenes
+retain an asphalt driving surface while a source box marks only an unsurfaced
+shoulder or edge. The sample also contains repeated frames from the same
+recordings. RAD is therefore rejected for the current `Unpaved_road` label.
+See `docs/V2_RAD_VISUAL_REVIEW.md`.
 
 ## Next approved task
 
-Complete the 60-image RAD `UnsurfacedRoad` human review. Accept only images
-where a person can clearly recognise an unpaved road; mark wrong or unclear
-examples for exclusion. After the decisions are recorded, calculate the real
-approval rate and decide whether RAD can become the `Unpaved_road` source. Do
-not merge sources, build the final split, or train a model at this stage.
+Evaluate another traceable source for the missing labels, beginning with a
+strict preflight for `Unpaved_road`: the main drivable surface must be unpaved,
+not merely a dirt shoulder beside asphalt. Sample one image per recording group
+before allowing additional frames. Do not merge sources, build the final split,
+or train a model at this stage.

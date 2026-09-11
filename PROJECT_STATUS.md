@@ -88,8 +88,10 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 - A separate 60-image PaveBench negative look-alike sample was reviewed on 2026-09-11. None clearly matched the six missing labels, so all 60 sampled records were excluded and zero were accepted. This does not prove the status of every unreviewed PaveBench negative image.
 - RAD version 3 was downloaded and structurally audited on 2026-09-11 as a possible `Unpaved_road` source. The extracted labelled section contains 8,394 readable 1920 x 1080 images and matching YOLO labels. Its `UnsurfacedRoad` class contains 593 boxes in 539 images.
 - RAD's source-provided splits are not safe to reuse: 20 exact duplicate groups cross its train, validation, and test folders. A later split must be rebuilt after acceptance and grouped duplicate removal.
-- A deterministic 60-image RAD `UnsurfacedRoad` workbook was prepared from source-training records only. RAD remains a candidate rather than accepted training data until the human mapping and quality review is completed.
-- Next small task: complete the 60-image RAD review, record the decisions, and decide whether `UnsurfacedRoad` can honestly supply the V2 `Unpaved_road` class. Do not create a final split or train a V2 model yet.
+- The 60-image RAD visual review was assessed on 2026-09-11. The workbook contains 33 preliminary keep choices, 26 exclusions, and one pending choice, but the final reviewer conclusion identified a semantic mismatch: many source boxes mark an unsurfaced shoulder or edge while the main road remains asphalt.
+- The review sample contains no exact duplicate files, but it uses only 38 recording groups; 16 groups appear more than once and a difference-hash check found eight highly similar same-recording pairs.
+- RAD is rejected as the current V2 `Unpaved_road` source. The preliminary keep choices are not accepted into the candidate inventory. See `docs/V2_RAD_VISUAL_REVIEW.md`.
+- Next small task: preflight another traceable source for the missing classes, using the strict rule that an `Unpaved_road` image must show an unpaved main driving surface and sampling only one representative per recording group before extra frames.
 
 ## EXTC4 evidence and defense readiness artifacts
 

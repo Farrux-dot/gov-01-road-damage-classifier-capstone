@@ -56,10 +56,10 @@ Multi-class classification gives one main label to each complete image. These co
 | `road_stain` | 0 | 0 | 0 | **0** | No accepted dedicated source. |
 | `normal_asphalt` | 0 | 0 | 0 | **0** | V1 Normal images were rejected for V2 because their 64 x 64 resolution does not support a reliable clean-asphalt decision. |
 
-RAD contributes 539 `UnsurfacedRoad` candidate images, but they are not added
-to this accepted-coverage table yet. A 60-image source-training review must
-first confirm that the source label honestly matches `unpaved_road` and that
-the condition is clearly visible.
+RAD's 539 source-labelled `UnsurfacedRoad` images are not added to this table.
+The visual review showed that its boxes may identify an unsurfaced shoulder or
+edge while the main road remains asphalt, so RAD was rejected for the current
+`unpaved_road` definition.
 
 These counts show that the original full-image priority labels are not suitable for the planned ten-class model. Six required classes have no accepted examples, and the priority rule hides manholes inside images labelled as pothole, crack, or repaired road.
 
@@ -79,8 +79,8 @@ Multi-label classification can record more than one visible condition in the sam
 | `road_marking_present` | 0 | 0 | 0 | **0** | No accepted labelled source. |
 | `road_stain_present` | 0 | 0 | 0 | **0** | No accepted labelled source. |
 
-RAD's 539 `UnsurfacedRoad` candidate images remain outside these totals until
-the manual label-mapping review is complete.
+RAD's 539 `UnsurfacedRoad` records remain outside these totals because the
+manual review rejected the source-to-V2 mapping.
 
 `Normal_asphalt` cannot be derived yet because six required look-alike or surface labels are missing. The available records also have different annotation completeness: SVRDD maps all four supplied source conditions, while V1 and PaveBench do not prove the absence of every other V2 condition.
 
@@ -135,7 +135,7 @@ No reviewed single-condition crop pool currently exists for crack or pothole.
 
 ## What is not ready
 
-1. Dedicated accepted data for `shadow`, `puddle`, `road_marking`, `road_stain`, and `normal_asphalt`, plus completion of the pending RAD review before its `UnsurfacedRoad` candidates can count as `unpaved_road`.
+1. Dedicated accepted data for `unpaved_road`, `shadow`, `puddle`, `road_marking`, `road_stain`, and `normal_asphalt`. RAD was reviewed and rejected for `unpaved_road`.
 2. A common image format and quality rule across pothole, crack, repaired-road, and manhole candidates.
 3. A reviewed single-condition crop pool for pothole and crack if the multi-class experiment uses crops.
 4. A final group-based train, validation, and protected-test split.
@@ -145,14 +145,11 @@ No reviewed single-condition crop pool currently exists for crack or pothole.
 
 ## Recommended next task
 
-Complete the deterministic 60-image RAD `UnsurfacedRoad` review before split
-planning. The review uses source-training records only and must accept only
-clear examples that honestly map to `unpaved_road`. After review, record the
-approval rate and decide whether RAD is accepted or rejected for that label.
-
-If RAD is accepted later, do not reuse its supplied splits: the structural
-audit found 20 exact duplicate groups crossing train, validation, and test.
-Related frames and exact duplicates must remain in one future split group.
+Preflight another traceable source for the missing labels. For
+`unpaved_road`, accept only examples where the main drivable road surface is
+unpaved. Do not accept asphalt-road scenes merely because they include a dirt
+shoulder. Sample one representative per recording group before any extra video
+frames, and check exact and near duplicates before future split planning.
 
 Training remains blocked until the selected task has complete labels, a documented split, and a completed Data Gate.
 
@@ -170,3 +167,4 @@ Training remains blocked until the selected task has complete labels, a document
 - `docs/V2_V1_INTEGRATION_AUDIT.md`
 - `docs/V2_ROAD_CONDITION_LABELING_GUIDE.md`
 - `docs/V2_RAD_DATA_AUDIT.md`
+- `docs/V2_RAD_VISUAL_REVIEW.md`
