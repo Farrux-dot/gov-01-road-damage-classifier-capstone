@@ -73,10 +73,14 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 - The complete traceability record is documented in `docs/V2_REPAIRED_ROAD_REVIEW_METHOD.md` and the `docs/v2_svrdd_repaired_road_*_manifest.csv` files. Every record uses the original source image as its `split_group_id` to prevent future split leakage.
 - All 2,676 retained repaired-road candidates were materialized as contextual RGB crops in the Git-ignored `data/processed/` workspace. The crops come from 1,513 source images and preserve exactly 1,513 source-based split groups. See `docs/V2_REPAIRED_ROAD_MATERIALIZATION.md` and `docs/v2_svrdd_repaired_road_materialization_manifest.csv`.
 - File and geometry checks completed successfully: 2,676 manifest rows match 2,676 JPEG files, crop sides range from 128 to 1,024 pixels, and no source image or candidate record is missing.
-- Exact SHA-256 checking found 23 duplicate crop groups containing 24 redundant crops beyond the first. Every duplicate remains inside one source image and one split group, so no cross-group leakage was found. Deduplication is still required to avoid overweighting repeated crop content during classification training.
-- The provisional unique-content count would be 2,652 after retaining one crop per exact hash. This is not yet a final split count.
-- No final V2 split has been created and no V2 model has been trained.
-- Next small task: create a deterministic classification deduplication decision, then generate and review a targeted visual-quality sample from the remaining repaired-road crops. Do not create the final combined V2 split or train a model until that review is complete.
+- Exact SHA-256 checking found 23 duplicate crop groups containing 24 redundant crops beyond the first. Every duplicate remains inside one source image and one split group, so no cross-group leakage was found.
+- Deterministic exact-content deduplication is complete: 2,652 unique records are retained and 24 redundant records are documented separately. No JPEG files were deleted. Human-approved evidence is preferred when choosing a keeper; otherwise candidate ID supplies a repeatable tie-break.
+- The 60-row visual-quality review was completed on 2026-09-10. It used seed `42`, four crops from every region/size-band combination, and 60 unique original source images.
+- Human review approved 51 repaired-road crops and rejected 9 unclear crops. The rejection reasons were one bus-shadow obstruction, three examples invisible to the human eye, and five examples where asphalt colour hid the repaired area.
+- The final unique-quality evidence retains 2,643 candidates and excludes the 9 human-rejected unclear candidates. Of the retained candidates, 142 now have individual human approval and 2,501 remain honestly marked as source-labelled audit-supported candidates.
+- See `docs/V2_REPAIRED_ROAD_DEDUPLICATION_AND_QUALITY_REVIEW.md`, `docs/v2_svrdd_repaired_road_unique_quality_review_manifest.csv`, `docs/v2_svrdd_repaired_road_unique_keep_manifest.csv`, and `docs/v2_svrdd_repaired_road_unique_quality_exclusions.csv`.
+- No image files were deleted. No final V2 split has been created and no V2 model has been trained.
+- Next small task: compare the retained candidate counts across all approved V2 classes and define the leakage-safe group split plan before creating any final combined split.
 
 ## EXTC4 evidence and defense readiness artifacts
 
