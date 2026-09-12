@@ -25,6 +25,7 @@ Images must not be downloaded into Git. Store raw archives and raw images in an 
 | [N-RDD2024 official dataset record](https://data.mendeley.com/datasets/27c8pwsd6v/5) | The official Mendeley record lists CC BY 4.0, ten road-condition labels, and a 6.58 GB complete download. | `Pothole`, `Crack`, `Manhole`, `Repaired_road`, `Road_marking` look-alikes | Object detection; multi-label after conversion | **Deferred.** The host throttled the complete download; it is not the first V2 acquisition. |
 | [PaveBench](https://huggingface.co/datasets/VVQNN/PaveBench) | Dataset card lists 20,124 high-resolution 512 x 512 pavement images for its visual-perception subset; image-level labels, detection boxes, and segmentation masks; and CC BY-NC-SA 4.0. Its visual classes are pothole, three crack types, patch, and negative. It also retains hard distractors such as pavement stains, tree shadows, and road markings. | `Pothole`, `Crack`, `Repaired_road` (from `patch` after visual review), and candidate hard-negative images | Image classification and object-detection supplement | **Downloaded on 2026-09-06; structural preflight passed with warnings.** The downloaded classification and detection tasks contain 20,124 classification images and 11,857 readable detection images with valid COCO alignment. However, 22 exact duplicate groups cross the source detection splits. Do not use its supplied splits as V2 evaluation; rebuild a duplicate-free split later. It has no `Manhole`, `Unpaved_road`, `Shadow`, `Puddle`, `Road_stain`, or `Road_marking` ground-truth class. Do not turn its generic `negative` images into those labels automatically. Its non-commercial, share-alike licence must be retained in project documentation. |
 | [RAD Road Anomaly Detection](https://www.kaggle.com/datasets/rohitsuresh15/radroad-anomaly-detection) | Public Kaggle version 3 lists the MIT licence. The extracted labelled image section contains 8,394 readable 1920 x 1080 images with matching YOLO files. The source classes are HMV, LMV, Pedestrian, RoadDamages, SpeedBump, and UnsurfacedRoad. | No accepted V2 label | Structural-audit reference only | **Rejected for current V2 use on 2026-09-11.** The 60-image review showed a semantic mismatch: `UnsurfacedRoad` boxes can mark dirt shoulders or road edges while the main road remains asphalt. The sample also contains repeated scenes from the same videos. No RAD image is accepted into the V2 inventory. |
+| [Deep Pavements](https://github.com/kauevestena/deep_pavements_dataset) | The repository provides 500 images for each of ten surface-material classes and uses an MIT repository licence. Four relevant folders were preflighted: asphalt, compacted, gravel, and ground. The provider describes the source images as CC-compatible, but no per-image source URL or licence record was found in the extracted relevant files. | No accepted V2 label | Structural-audit reference only | **Rejected for current V2 use on 2026-09-11.** All 2,000 extracted images are readable and no exact duplicates were found, but 1,926 are below 224 pixels on at least one side. Inspected examples are close texture patches rather than complete road scenes, so they cannot prove that the main driving surface is `Unpaved_road` or that an asphalt scene is clean `Normal_asphalt`. |
 | Manually collected or permission-based images | License and consent depend on the individual source; must be recorded per image set. | `Shadow`, `Puddle`, `Road_marking`, `Road_stain`, `Repaired_road`, `Unpaved_road`, clean `Normal_asphalt` | All three V2 approaches after manual labeling | **Required supplement.** These look-alike categories are essential to prevent false pothole alerts. |
 
 ## How each model approach will receive data
@@ -65,9 +66,9 @@ one falsely complete dataset.
 | `Crack` | Available in audited SVRDD. PaveBench may later add high-resolution diversity after its own audit. |
 | `Repaired_road` | Available in audited SVRDD. PaveBench `patch` may map here after visual and format audit. |
 | `Manhole` | Available in audited SVRDD. PaveBench does not provide it. |
-| `Unpaved_road` | **Open gap.** RAD was reviewed and rejected because its boxes can mark localized unsurfaced shoulders beside asphalt roads rather than a fully unpaved driving surface. |
+| `Unpaved_road` | **Open gap.** RAD was rejected because its boxes can mark localized unsurfaced shoulders beside asphalt roads. Deep Pavements was rejected because its compacted, gravel, and ground images are texture patches rather than complete driving scenes. |
 | `Shadow`, `Puddle`, `Road_stain`, `Road_marking` | **Open gap.** These require explicit manual labels. PaveBench negative images are only candidates for manual review, not ground truth for a named look-alike label. |
-| `Normal_asphalt` | **Open gap.** Must be manually reviewed as clear asphalt; it cannot be inferred from a generic negative label. |
+| `Normal_asphalt` | **Open gap.** Must be manually reviewed as a complete clear-asphalt road scene. It cannot be inferred from a generic negative label or an asphalt texture patch. |
 
 The V1 Normal data is rejected for this purpose because its 64 x 64 images do
 not have enough detail for a defensible clear-asphalt or look-alike decision.
@@ -132,10 +133,29 @@ shoulder or edge. The sample also contains repeated frames from the same
 recordings. RAD is therefore rejected for the current `Unpaved_road` label.
 See `docs/V2_RAD_VISUAL_REVIEW.md`.
 
+## Deep Pavements preflight decision
+
+Four potentially relevant folders were downloaded and audited on 2026-09-11:
+`asphalt`, `compacted`, `gravel`, and `ground`, with 500 PNG files in each
+folder. All 2,000 files opened successfully, and no exact duplicate group was
+found. However, 1,926 images are below 224 pixels on at least one side, and
+visual inspection showed close-up surface-texture patches rather than complete
+road scenes.
+
+This is a task mismatch, not merely a resolution problem. A gravel or soil
+texture tile does not show that the main drivable road is unpaved, and an
+asphalt texture tile does not show that a complete road scene is free from
+potholes, cracks, shadows, puddles, markings, or stains. The source is rejected
+for the current V2 labels, zero images are accepted, and no manual review
+workbook or model split is created. See
+`docs/V2_DEEP_PAVEMENTS_PREFLIGHT_AUDIT.md`.
+
 ## Next approved task
 
-Evaluate another traceable source for the missing labels, beginning with a
-strict preflight for `Unpaved_road`: the main drivable surface must be unpaved,
-not merely a dirt shoulder beside asphalt. Sample one image per recording group
-before allowing additional frames. Do not merge sources, build the final split,
-or train a model at this stage.
+Evaluate another traceable **full road-scene** source for the missing labels,
+beginning with a strict preflight for `Unpaved_road`: the main drivable surface
+must be unpaved, not merely a dirt shoulder beside asphalt and not a close-up
+material texture. Prefer a source with per-image provenance or a clearly
+traceable licence. Sample one image per recording group before allowing
+additional frames. Do not merge sources, build the final split, or train a
+model at this stage.

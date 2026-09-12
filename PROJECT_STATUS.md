@@ -91,7 +91,10 @@ The project evidence, public demo route, local-demo evidence, and final defense 
 - The 60-image RAD visual review was assessed on 2026-09-11. The workbook contains 33 preliminary keep choices, 26 exclusions, and one pending choice, but the final reviewer conclusion identified a semantic mismatch: many source boxes mark an unsurfaced shoulder or edge while the main road remains asphalt.
 - The review sample contains no exact duplicate files, but it uses only 38 recording groups; 16 groups appear more than once and a difference-hash check found eight highly similar same-recording pairs.
 - RAD is rejected as the current V2 `Unpaved_road` source. The preliminary keep choices are not accepted into the candidate inventory. See `docs/V2_RAD_VISUAL_REVIEW.md`.
-- Next small task: preflight another traceable source for the missing classes, using the strict rule that an `Unpaved_road` image must show an unpaved main driving surface and sampling only one representative per recording group before extra frames.
+- Deep Pavements was downloaded and preflighted on 2026-09-11 using only its four potentially relevant folders: asphalt, compacted, gravel, and ground, with 500 images per folder and 2,000 images total.
+- All 2,000 Deep Pavements files are readable and no exact duplicate group was found, but 1,926 images are below 224 pixels on at least one side. Inspected examples are close surface-texture patches rather than complete road scenes.
+- Deep Pavements is rejected for the current `Unpaved_road` and `Normal_asphalt` labels. Zero images are accepted, no review workbook or model split is created, and no per-image source URL or licence record was found in the extracted relevant files. See `docs/V2_DEEP_PAVEMENTS_PREFLIGHT_AUDIT.md`.
+- Next small task: preflight another traceable full road-scene source for the missing classes, using the strict rule that an `Unpaved_road` image must show an unpaved main driving surface, not a dirt shoulder or isolated texture. Prefer per-image provenance and sample only one representative per recording group before extra frames.
 
 ## EXTC4 evidence and defense readiness artifacts
 

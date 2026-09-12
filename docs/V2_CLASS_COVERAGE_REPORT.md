@@ -61,6 +61,12 @@ The visual review showed that its boxes may identify an unsurfaced shoulder or
 edge while the main road remains asphalt, so RAD was rejected for the current
 `unpaved_road` definition.
 
+Deep Pavements is also not added to this table. Its four relevant folders
+contain 2,000 readable surface-type images, but 1,926 are below 224 pixels on at
+least one side and inspected examples are close texture patches rather than
+complete road scenes. Zero images were accepted for `unpaved_road` or
+`normal_asphalt`.
+
 These counts show that the original full-image priority labels are not suitable for the planned ten-class model. Six required classes have no accepted examples, and the priority rule hides manholes inside images labelled as pothole, crack, or repaired road.
 
 ## Multi-label positive-image coverage
@@ -135,7 +141,7 @@ No reviewed single-condition crop pool currently exists for crack or pothole.
 
 ## What is not ready
 
-1. Dedicated accepted data for `unpaved_road`, `shadow`, `puddle`, `road_marking`, `road_stain`, and `normal_asphalt`. RAD was reviewed and rejected for `unpaved_road`.
+1. Dedicated accepted data for `unpaved_road`, `shadow`, `puddle`, `road_marking`, `road_stain`, and `normal_asphalt`. RAD and Deep Pavements were reviewed and rejected for the current `unpaved_road` definition.
 2. A common image format and quality rule across pothole, crack, repaired-road, and manhole candidates.
 3. A reviewed single-condition crop pool for pothole and crack if the multi-class experiment uses crops.
 4. A final group-based train, validation, and protected-test split.
@@ -145,11 +151,13 @@ No reviewed single-condition crop pool currently exists for crack or pothole.
 
 ## Recommended next task
 
-Preflight another traceable source for the missing labels. For
+Preflight another traceable full road-scene source for the missing labels. For
 `unpaved_road`, accept only examples where the main drivable road surface is
 unpaved. Do not accept asphalt-road scenes merely because they include a dirt
-shoulder. Sample one representative per recording group before any extra video
-frames, and check exact and near duplicates before future split planning.
+shoulder, and do not accept close-up surface textures that lack driving-scene
+context. Prefer per-image provenance or a clearly traceable licence. Sample one
+representative per recording group before any extra video frames, and check
+exact and near duplicates before future split planning.
 
 Training remains blocked until the selected task has complete labels, a documented split, and a completed Data Gate.
 
@@ -168,3 +176,4 @@ Training remains blocked until the selected task has complete labels, a document
 - `docs/V2_ROAD_CONDITION_LABELING_GUIDE.md`
 - `docs/V2_RAD_DATA_AUDIT.md`
 - `docs/V2_RAD_VISUAL_REVIEW.md`
+- `docs/V2_DEEP_PAVEMENTS_PREFLIGHT_AUDIT.md`
