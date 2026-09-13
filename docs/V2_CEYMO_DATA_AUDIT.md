@@ -100,9 +100,23 @@ truth or a final multi-class primary label.
 
 No final V2 split has been created, and no V2 model has been trained.
 
+## Candidate-inventory integration
+
+Completed on 2026-09-13. The source-traceable manifest records all 2,099 source
+images in `docs/v2_ceymo_candidate_manifest.csv`. It accepts 2,097 unique
+images and excludes two redundant copies before integration:
+
+- kept `615b.jpg` and excluded `602b.jpg` because `615b.xml` contains six
+  marking objects while `602b.xml` contains three;
+- kept `605.jpg` and excluded `618c.jpg` using the stable source-ID tiebreak
+  because both annotations contain one marking object.
+
+The accepted CeyMo inventory therefore contains 2,097 road-marking-positive
+images and 3,484 road-marking boxes. No raw file was deleted or edited. The
+combined V2 pre-split inventory now contains 10,551 candidate images and zero
+remaining exact duplicate groups.
+
 ## Next controlled step
 
-Build a source-traceable CeyMo candidate manifest, remove or group the two
-duplicate copies, and preserve original source filenames. Only then may the
-accepted records be integrated into the combined V2 pre-split inventory.
-
+Preflight traceable full road-scene sources for the remaining `shadow`,
+`puddle`, and `road_stain` gaps. No V2 model training may begin yet.

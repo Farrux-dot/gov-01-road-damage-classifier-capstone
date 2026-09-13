@@ -25,6 +25,7 @@ STREETSURFACEVIS_TO_V2 = {
     "Normal_asphalt": "normal_asphalt",
     "Unpaved_road": "unpaved_road",
 }
+CEYMO_ACCEPTED_STATUS = "pre_split_source_candidate"
 MULTILABEL_KEYS = {
     "pothole_present": "pothole",
     "crack_present": "crack",
@@ -303,6 +304,70 @@ def build_streetsurfacevis_candidates(
     return records
 
 
+def build_ceymo_candidates(
+    repository_root: Path,
+    candidate_manifest: Path,
+) -> list[dict[str, Any]]:
+    """Create road-marking candidates from the duplicate-safe CeyMo manifest."""
+    if not candidate_manifest.is_file():
+        raise FileNotFoundError(f"Missing CeyMo candidate manifest: {candidate_manifest}")
+    records: list[dict[str, Any]] = []
+    with candidate_manifest.open(newline="", encoding="utf-8-sig") as file:
+        for row_number, row in enumerate(csv.DictReader(file), start=2):
+            status = str(row.get("candidate_status", "")).strip()
+            if status == "exclude_exact_duplicate":
+                continue
+            if status != CEYMO_ACCEPTED_STATUS:
+                raise ValueError(f"Unsupported CeyMo candidate status on row {row_number}: {status}")
+            source_record_id = str(row.get("source_record_id", "")).strip()
+            source_path = str(row.get("source_image_path", "")).strip().replace("\\", "/")
+            annotation_path = str(row.get("source_annotation_path", "")).strip().replace("\\", "/")
+            expected_sha256 = str(row.get("sha256", "")).strip().lower()
+            source_subtype_counts = str(row.get("source_subtype_counts", "")).strip()
+            mapped_object_count = int(str(row.get("mapped_object_count", "0")).strip())
+            if not source_record_id or not source_path or not annotation_path or not expected_sha256:
+                raise ValueError(f"Incomplete CeyMo candidate record on row {row_number}")
+            if mapped_object_count <= 0:
+                raise ValueError(f"CeyMo candidate has no mapped objects on row {row_number}")
+            image_path = repository_root / Path(source_path)
+            xml_path = repository_root / Path(annotation_path)
+            actual_sha256 = checked_digest(image_path)
+            if actual_sha256 != expected_sha256:
+                raise ValueError(f"CeyMo SHA-256 mismatch on row {row_number}: {source_path}")
+            if not xml_path.is_file():
+                raise FileNotFoundError(f"Missing CeyMo XML annotation: {xml_path}")
+            records.append(
+                {
+                    "candidate_id": f"ceymo::train::{source_record_id}",
+                    "source_id": "CeyMo",
+                    "source_url": "https://github.com/oshadajay/CeyMo",
+                    "license_record": (
+                        "MIT repository licence; confirm dataset-file redistribution coverage"
+                    ),
+                    "original_source_split": "train",
+                    "source_record_id": source_record_id,
+                    "source_image_path": repository_relative(image_path, repository_root),
+                    "source_annotation_path": repository_relative(xml_path, repository_root),
+                    "review_sample_id": "",
+                    "task_eligibility": "multi_label;object_detection",
+                    "boxes_available": "yes",
+                    "object_count": mapped_object_count,
+                    "object_labels": "road_marking",
+                    "object_label_counts": f"road_marking:{mapped_object_count}",
+                    "proposed_multiclass_label": "",
+                    "proposed_multilabels": "road_marking",
+                    "review_basis": (
+                        "audited source labels plus student-approved visual quality; "
+                        f"source subtypes={source_subtype_counts}"
+                    ),
+                    "candidate_status": "pre_split_source_candidate",
+                    "sha256": actual_sha256,
+                    "exact_duplicate_group_id": str(row.get("exact_duplicate_group_id", "")).strip(),
+                }
+            )
+    return records
+
+
 def mark_exact_duplicates(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Mark exact duplicate groups without silently deleting any candidate."""
     by_hash: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -359,12 +424,15 @@ def summarize(records: list[dict[str, Any]]) -> dict[str, Any]:
         for item in filter(None, str(record.get("object_label_counts", "")).split(";")):
             label, count = item.rsplit(":", maxsplit=1)
             object_counts[label] += int(count)
-    duplicate_groups = {
+    duplicate_group_counts = Counter(
         str(record["exact_duplicate_group_id"])
         for record in records
         if record["exact_duplicate_group_id"]
+    )
+    duplicate_groups = {
+        group_id for group_id, count in duplicate_group_counts.items() if count > 1
     }
-    duplicate_records = sum(bool(record["exact_duplicate_group_id"]) for record in records)
+    duplicate_records = sum(duplicate_group_counts[group_id] for group_id in duplicate_groups)
     return {
         "candidate_image_records": len(records),
         "counts_by_source": dict(sorted(source_counts.items())),
@@ -394,6 +462,7 @@ def build_inventory(
     v1_clean_split_dir: Path,
     pavebench_review_manifest: Path,
     streetsurfacevis_candidate_manifest: Path,
+    ceymo_candidate_manifest: Path,
 ) -> list[dict[str, Any]]:
     """Build and validate all currently eligible candidate sources."""
     records = [
@@ -401,6 +470,7 @@ def build_inventory(
         *build_v1_pothole_candidates(repository_root, v1_clean_split_dir),
         *build_pavebench_candidates(repository_root, pavebench_review_manifest),
         *build_streetsurfacevis_candidates(repository_root, streetsurfacevis_candidate_manifest),
+        *build_ceymo_candidates(repository_root, ceymo_candidate_manifest),
     ]
     records = sorted(records, key=lambda record: str(record["candidate_id"]))
     mark_exact_duplicates(records)
@@ -416,6 +486,7 @@ def main() -> None:
     parser.add_argument("--v1-clean-split-dir", type=Path, required=True)
     parser.add_argument("--pavebench-review-manifest", type=Path, required=True)
     parser.add_argument("--streetsurfacevis-candidate-manifest", type=Path, required=True)
+    parser.add_argument("--ceymo-candidate-manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
@@ -427,6 +498,7 @@ def main() -> None:
         args.v1_clean_split_dir,
         args.pavebench_review_manifest,
         args.streetsurfacevis_candidate_manifest,
+        args.ceymo_candidate_manifest,
     )
     report = summarize(records)
     write_inventory(records, args.output)

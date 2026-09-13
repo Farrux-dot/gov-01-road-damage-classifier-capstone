@@ -66,5 +66,18 @@ The complete findings and mapping rules are documented in
 `docs/V2_CEYMO_DATA_AUDIT.md` and `docs/V2_CEYMO_LABEL_MAPPING.md`. Raw images,
 archives, and the JSON audit output remain excluded from Git by `.gitignore`.
 
+After a successful audit, rebuild the duplicate-safe CeyMo manifest:
+
+```text
+python -B -m src.build_ceymo_candidate_manifest \
+  --repo-root . \
+  --images-dir data/raw/v2/ceymo/train/extracted/train/images \
+  --annotations-dir data/raw/v2/ceymo/train/extracted/train/bbox_annotations \
+  --output docs/v2_ceymo_candidate_manifest.csv
+```
+
+The manifest records every source image but marks redundant exact copies as
+excluded. The combined inventory builder reads only accepted CeyMo rows.
+
 The official repository contains an MIT licence. Confirm that it covers
 dataset-file redistribution before redistributing any CeyMo images.

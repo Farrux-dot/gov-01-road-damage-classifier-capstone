@@ -71,6 +71,54 @@ def write_streetsurfacevis_manifest(root: Path) -> Path:
     return manifest
 
 
+def write_ceymo_manifest(root: Path) -> Path:
+    manifest = root / "docs/v2_ceymo_candidate_manifest.csv"
+    accepted_image = root / "data/raw/v2/ceymo/train/extracted/train/images/marking.jpg"
+    accepted_xml = root / "data/raw/v2/ceymo/train/extracted/train/bbox_annotations/marking.xml"
+    accepted_image.parent.mkdir(parents=True, exist_ok=True)
+    accepted_xml.parent.mkdir(parents=True, exist_ok=True)
+    accepted_image.write_bytes(b"ceymo-marking")
+    accepted_xml.write_text("<annotation></annotation>", encoding="utf-8")
+    fieldnames = (
+        "source_record_id",
+        "source_image_path",
+        "source_annotation_path",
+        "source_subtype_counts",
+        "mapped_object_count",
+        "sha256",
+        "exact_duplicate_group_id",
+        "candidate_status",
+    )
+    with manifest.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerow(
+            {
+                "source_record_id": "marking",
+                "source_image_path": "data/raw/v2/ceymo/train/extracted/train/images/marking.jpg",
+                "source_annotation_path": "data/raw/v2/ceymo/train/extracted/train/bbox_annotations/marking.xml",
+                "source_subtype_counts": "SA:2",
+                "mapped_object_count": "2",
+                "sha256": hashlib.sha256(b"ceymo-marking").hexdigest(),
+                "exact_duplicate_group_id": "ceymo_exact_dup_0001",
+                "candidate_status": "pre_split_source_candidate",
+            }
+        )
+        writer.writerow(
+            {
+                "source_record_id": "excluded-copy",
+                "source_image_path": "data/raw/v2/ceymo/train/extracted/train/images/excluded.jpg",
+                "source_annotation_path": "data/raw/v2/ceymo/train/extracted/train/bbox_annotations/excluded.xml",
+                "source_subtype_counts": "SA:1",
+                "mapped_object_count": "1",
+                "sha256": "excluded",
+                "exact_duplicate_group_id": "ceymo_exact_dup_0001",
+                "candidate_status": "exclude_exact_duplicate",
+            }
+        )
+    return manifest
+
+
 class BuildV2CandidateInventoryTests(unittest.TestCase):
     def test_inventory_uses_only_eligible_sources_and_keeps_v1_evaluation_reserved(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -120,6 +168,7 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
                 )
 
             streetsurfacevis_manifest = write_streetsurfacevis_manifest(root)
+            ceymo_manifest = write_ceymo_manifest(root)
             records = build_inventory(
                 root,
                 annotations,
@@ -127,9 +176,10 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
                 clean_split,
                 review_manifest,
                 streetsurfacevis_manifest,
+                ceymo_manifest,
             )
 
-        self.assertEqual(len(records), 5)
+        self.assertEqual(len(records), 6)
         paths = {record["source_image_path"] for record in records}
         self.assertIn("data/raw/v2/svrdd/extracted/train/images/Example/svrdd.jpg", paths)
         self.assertNotIn("data/raw/v2/svrdd/extracted/validation/images/Example/svrdd.jpg", paths)
@@ -144,9 +194,17 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
         self.assertNotIn("data/raw/v2/streetsurfacevis/s_1024/unpaved-unclear.jpg", paths)
         self.assertNotIn("data/raw/v2/streetsurfacevis/s_1024/protected.jpg", paths)
         self.assertNotIn("data/raw/v2/streetsurfacevis/s_1024/too-small.jpg", paths)
+        self.assertIn("data/raw/v2/ceymo/train/extracted/train/images/marking.jpg", paths)
+        self.assertNotIn("data/raw/v2/ceymo/train/extracted/train/images/excluded.jpg", paths)
         street_records = [record for record in records if record["source_id"] == "StreetSurfaceVis"]
         self.assertEqual({record["task_eligibility"] for record in street_records}, {"multi_class"})
         self.assertEqual({record["proposed_multilabels"] for record in street_records}, {""})
+        ceymo_records = [record for record in records if record["source_id"] == "CeyMo"]
+        self.assertEqual(len(ceymo_records), 1)
+        self.assertEqual(ceymo_records[0]["task_eligibility"], "multi_label;object_detection")
+        self.assertEqual(ceymo_records[0]["proposed_multiclass_label"], "")
+        self.assertEqual(ceymo_records[0]["proposed_multilabels"], "road_marking")
+        self.assertEqual(ceymo_records[0]["object_label_counts"], "road_marking:2")
 
     def test_exact_duplicates_are_flagged_not_silently_removed(self):
         records = [

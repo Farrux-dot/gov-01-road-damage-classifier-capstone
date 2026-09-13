@@ -60,6 +60,19 @@ steps can trace and compare every candidate.
 - These records support multi-class classification only. They do not provide
   complete nine-output multi-label truth or object boxes.
 
+### CeyMo
+
+- Audited all 2,099 official source-training images and their XML annotations.
+- Recorded every source image in `docs/v2_ceymo_candidate_manifest.csv`.
+- Accepted 2,097 exact-unique images and excluded two redundant copies before
+  integration. The duplicate with more annotated objects was kept; equal
+  annotations used the alphabetically first source ID as a stable tiebreak.
+- Retained 3,484 road-marking boxes after duplicate removal.
+- These records support road-marking-positive multi-label evidence and object
+  detection. They do not receive an automatic multi-class primary label
+  because other V2 conditions in each complete scene were not exhaustively
+  reviewed.
+
 ## Candidate counts by source
 
 | Source | Candidate image records | Current meaning |
@@ -68,7 +81,8 @@ steps can trace and compare every candidate.
 | V1 clean training Pothole | 624 | Image-level pothole candidates without boxes |
 | PaveBench individually approved detection records | 109 | Human-reviewed candidates with boxes |
 | StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes |
-| **Total** | **8,454** | Not a final training split |
+| CeyMo duplicate-safe source-training candidates | 2,097 | Road-marking-positive images with boxes; no automatic primary label |
+| **Total** | **10,551** | Not a final training split |
 
 ## Task eligibility
 
@@ -77,6 +91,7 @@ steps can trace and compare every candidate.
 | Multi-class, multi-label, and object detection | 6,109 | SVRDD and reviewed PaveBench records have boxes |
 | Multi-class and multi-label only | 624 | V1 pothole records have no boxes |
 | Multi-class only | 1,721 | StreetSurfaceVis has surface labels but no boxes or complete multi-label truth |
+| Multi-label and object detection | 2,097 | CeyMo confirms road-marking presence and boxes, but not a complete multi-class scene label |
 
 Task eligibility does not mean the data is ready for training. Remaining label,
 near-duplicate, imbalance, and split checks still apply.
@@ -91,6 +106,7 @@ near-duplicate, imbalance, and split checks still apply.
 | `manhole_cover` | 1 |
 | `normal_asphalt` | 791 |
 | `unpaved_road` | 930 |
+| `road_marking` | 0 |
 
 The `manhole_cover` count of one is a serious feasibility warning. It does not
 mean SVRDD contains only one manhole. The provisional one-label priority rule
@@ -103,6 +119,10 @@ labels yet. A later task must either create single-condition image crops from
 the audited boxes or define another defensible method that gives
 `manhole_cover` enough honest primary examples.
 
+CeyMo adds no row to the current multi-class counts. Its 2,097 accepted images
+prove that a road marking is present, but they have not been exhaustively
+reviewed for the other V2 conditions required by the one-label priority rule.
+
 ## Multi-label positive-image counts
 
 One image may appear in more than one row of this summary:
@@ -113,6 +133,7 @@ One image may appear in more than one row of this summary:
 | `repaired_road` | 2,088 |
 | `manhole_cover` | 1,688 |
 | `pothole` | 1,096 |
+| `road_marking` | 2,097 |
 
 These counts show that multi-label classification represents mixed-condition
 images more honestly than the current single-label priority rule.
@@ -125,6 +146,7 @@ images more honestly than the current single-label priority rule.
 | `repaired_road` | 5,100 |
 | `manhole_cover` | 2,517 |
 | `pothole` | 679 |
+| `road_marking` | 3,484 |
 
 The 624 V1 pothole images are not included in the object count because they do
 not have boxes.
@@ -133,8 +155,8 @@ not have boxes.
 
 | Check | Result |
 | --- | ---: |
-| Candidate IDs | 8,454 unique |
-| Candidate source paths | 8,454 existing files |
+| Candidate IDs | 10,551 unique |
+| Candidate source paths | 10,551 existing files |
 | Exact SHA-256 duplicate groups | 0 |
 | Records in exact-duplicate groups | 0 |
 | V1 validation or protected-test records included | 0 |
@@ -153,6 +175,8 @@ final split.
 - PaveBench: CC BY-NC-SA 4.0; this is non-commercial and share-alike.
 - StreetSurfaceVis: CC-BY-SA is stated on the official Zenodo record; recheck
   before redistribution.
+- CeyMo: the official repository contains an MIT licence; confirm that it
+  covers dataset-file redistribution before redistributing images.
 
 The inventory contains paths and evidence only. It does not redistribute the
 raw images.
@@ -162,7 +186,7 @@ raw images.
 1. Resolve the single-label `manhole_cover` collapse before multi-class model
    construction.
 2. Add or human-label the remaining look-alike conditions: shadow, puddle,
-   road stain, and road marking.
+   and road stain.
 3. Check near duplicates and source groups, not only byte-identical files.
 4. Decide task-specific inclusion rules because V1 potholes cannot support
    object detection without boxes.
@@ -172,5 +196,6 @@ raw images.
 
 ## Current decision
 
-**The traceable candidate inventory is complete. It is pre-split evidence, not
-a training dataset. V2 training remains blocked.**
+**All currently accepted sources, including duplicate-safe CeyMo road-marking
+records, are integrated. This is pre-split evidence, not a training dataset.
+V2 training remains blocked.**
