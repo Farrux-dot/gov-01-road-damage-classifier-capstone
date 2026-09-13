@@ -40,6 +40,12 @@ The source-traceable candidate inventory contains 8,454 full-image records:
 
 The V1 validation and protected-test images and the SVRDD source validation and test records remain outside this inventory.
 
+CeyMo was audited after this inventory was generated. Its 2,099 source train
+images and 3,488 road-marking objects are therefore **not yet included** in the
+tables below. Two redundant duplicate files must be removed or grouped before
+the CeyMo records are integrated. A zero for `road_marking` below means "not
+yet in this inventory," not "no accepted source exists."
+
 ## Multi-class full-image coverage
 
 Multi-class classification gives one main label to each complete image. These counts use the documented priority rule when several conditions appear in the same photograph.
@@ -53,7 +59,7 @@ Multi-class classification gives one main label to each complete image. These co
 | `unpaved_road` | 0 | 0 | 0 | 930 | **930** | Source-training records only; supported by a deterministic sample review. |
 | `shadow` | 0 | 0 | 0 | 0 | **0** | No accepted dedicated source. |
 | `puddle` | 0 | 0 | 0 | 0 | **0** | No accepted dedicated source. |
-| `road_marking` | 0 | 0 | 0 | 0 | **0** | No accepted dedicated source. |
+| `road_marking` | 0 | 0 | 0 | 0 | **0** | Audited CeyMo source exists but is not yet integrated into this inventory. |
 | `road_stain` | 0 | 0 | 0 | 0 | **0** | No accepted dedicated source. |
 | `normal_asphalt` | 0 | 0 | 0 | 791 | **791** | Source-training records only; supported by a deterministic sample review. |
 
@@ -72,8 +78,8 @@ StreetSurfaceVis contributes 1,721 candidates after excluding all records marked
 `official_train=False` and the unclear reviewed record `SSV-055`. Its lower-than-
 1,024-pixel images are allowed when both dimensions are at least 224 pixels.
 
-These counts show that the planned ten-class model is still not ready. Four
-required classes have no accepted examples, and the priority rule hides
+These counts show that the planned ten-class model is still not ready. Three
+required classes have no accepted examples, CeyMo is not yet integrated, and the priority rule hides
 manholes inside images labelled as pothole, crack, or repaired road.
 
 ## Multi-label positive-image coverage
@@ -89,7 +95,7 @@ Multi-label classification can record more than one visible condition in the sam
 | `unpaved_surface_present` | 0 | 0 | 0 | **0** | No accepted labelled source. |
 | `shadow_present` | 0 | 0 | 0 | **0** | No accepted labelled source. |
 | `puddle_present` | 0 | 0 | 0 | **0** | No accepted labelled source. |
-| `road_marking_present` | 0 | 0 | 0 | **0** | No accepted labelled source. |
+| `road_marking_present` | 0 | 0 | 0 | **0** | Audited CeyMo positives are pending inventory integration. |
 | `road_stain_present` | 0 | 0 | 0 | **0** | No accepted labelled source. |
 
 RAD's 539 `UnsurfacedRoad` records remain outside these totals because the
@@ -116,7 +122,7 @@ Object detection counts labelled objects, not images. Only records with boxes ar
 | `unpaved_surface` | 0 | 0 | **0** | No accepted boxes. |
 | `shadow_region` | 0 | 0 | **0** | No accepted boxes. |
 | `puddle` | 0 | 0 | **0** | No accepted boxes. |
-| `road_marking` | 0 | 0 | **0** | No accepted boxes. |
+| `road_marking` | 0 | 0 | **0** | CeyMo has 3,488 audited source boxes pending inventory integration. |
 | `road_stain` | 0 | 0 | **0** | No accepted boxes. |
 
 The largest current object class, crack, has about 10.9 times as many objects as pothole. This is a class-imbalance warning, not a model result. The data is also not proven to contain exhaustive boxes for every visible V2 condition in every image.
@@ -138,9 +144,9 @@ No reviewed single-condition crop pool currently exists for crack or pothole.
 
 | Planned task | Coverage decision | Reason |
 | --- | --- | --- |
-| Ten-class multi-class model | **Blocked** | Four labels have zero accepted examples, and the current full-image priority rule collapses manholes. |
-| Nine-output multi-label model | **Blocked** | Only four positive conditions are represented; required look-alike labels and trustworthy all-negative `Normal_asphalt` examples are missing. |
-| Nine-class object detector | **Blocked** | Only four object classes have boxes, pothole has the fewest boxes, and annotation completeness across all visible conditions is not yet proven. |
+| Ten-class multi-class model | **Blocked** | Three labels have zero accepted examples, CeyMo still needs integration and cross-condition review, and the current full-image priority rule collapses manholes. |
+| Nine-output multi-label model | **Blocked** | CeyMo can add road-marking positives after integration, but shadow, puddle, road-stain, and trustworthy all-negative records are still missing. |
+| Nine-class object detector | **Blocked** | CeyMo boxes still need integration, three object classes remain missing, pothole is comparatively small, and annotation completeness across all visible conditions is not yet proven. |
 | Six-label multi-class research pilot | **Possible after more preparation** | Pothole, crack, repaired road, manhole, normal asphalt, and unpaved road have traceable candidates, but the manhole primary-label collapse, formats, quality evidence, class balance, and split groups still need resolution. This pilot would not meet the final requirement to distinguish shadows, puddles, stains, and markings. |
 
 ## What is ready
@@ -156,8 +162,8 @@ No reviewed single-condition crop pool currently exists for crack or pothole.
 
 ## What is not ready
 
-1. Dedicated accepted data for `shadow`, `puddle`, `road_marking`, and
-   `road_stain`.
+1. Dedicated accepted data for `shadow`, `puddle`, and `road_stain`, plus
+   duplicate-safe inventory integration for CeyMo `road_marking` records.
 2. A common image format and quality rule across pothole, crack, repaired-road, and manhole candidates.
 3. A reviewed single-condition crop pool for pothole and crack if the multi-class experiment uses crops.
 4. A final group-based train, validation, and protected-test split.
@@ -167,11 +173,12 @@ No reviewed single-condition crop pool currently exists for crack or pothole.
 
 ## Recommended next task
 
-Preflight traceable full road-scene sources for `shadow`, `puddle`,
-`road_marking`, and `road_stain`. Review each source URL and licence before
-downloading it. Prefer per-image provenance, sample one representative per
-recording group before extra video frames, and check exact and near duplicates
-before future split planning.
+Build a source-traceable, duplicate-safe CeyMo candidate manifest and integrate
+it into the pre-split inventory. Then preflight traceable full road-scene
+sources for `shadow`, `puddle`, and `road_stain`. Review each source URL and
+licence before downloading it. Prefer per-image provenance, sample one
+representative per recording group before extra video frames, and check exact
+and near duplicates before future split planning.
 
 Training remains blocked until the selected task has complete labels, a documented split, and a completed Data Gate.
 
@@ -188,6 +195,8 @@ Training remains blocked until the selected task has complete labels, a document
 - `docs/V2_REPAIRED_ROAD_DEDUPLICATION_AND_QUALITY_REVIEW.md`
 - `docs/V2_V1_INTEGRATION_AUDIT.md`
 - `docs/V2_ROAD_CONDITION_LABELING_GUIDE.md`
+- `docs/V2_CEYMO_DATA_AUDIT.md`
+- `docs/V2_CEYMO_LABEL_MAPPING.md`
 - `docs/V2_RAD_DATA_AUDIT.md`
 - `docs/V2_RAD_VISUAL_REVIEW.md`
 - `docs/V2_DEEP_PAVEMENTS_PREFLIGHT_AUDIT.md`

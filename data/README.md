@@ -42,3 +42,29 @@ The model detects pothole presence only. It does not assess danger, physical siz
 - `docs/split_summary.csv` records the final class counts and split ratios.
 - `src/audit_dataset.py` is the reusable audit implementation.
 - `src/build_clean_split.py` is the reproducible clean-split implementation.
+
+## V2 CeyMo road-marking source
+
+CeyMo is used only in the experimental V2 branch as a candidate source for
+the general `Road_marking` condition.
+
+1. Open the [official CeyMo repository](https://github.com/oshadajay/CeyMo) and follow its **Train Set** download link.
+2. Save the archive as `data/raw/v2/ceymo/train/ceymo_train.zip`.
+3. Extract it under `data/raw/v2/ceymo/train/extracted/` so that the final
+   source root is `data/raw/v2/ceymo/train/extracted/train/`.
+4. Do not download or use the official CeyMo test set during V2 preparation.
+5. Run the structural audit from the repository root:
+
+```text
+python -B -m src.audit_ceymo \
+  --data-dir data/raw/v2/ceymo/train/extracted/train \
+  --output data/raw/v2/ceymo/ceymo_train_audit.json \
+  --data-label data/raw/v2/ceymo/train/extracted/train
+```
+
+The complete findings and mapping rules are documented in
+`docs/V2_CEYMO_DATA_AUDIT.md` and `docs/V2_CEYMO_LABEL_MAPPING.md`. Raw images,
+archives, and the JSON audit output remain excluded from Git by `.gitignore`.
+
+The official repository contains an MIT licence. Confirm that it covers
+dataset-file redistribution before redistributing any CeyMo images.
