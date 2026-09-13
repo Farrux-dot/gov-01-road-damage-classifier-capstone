@@ -1,4 +1,5 @@
 import csv
+import hashlib
 import json
 import tempfile
 import unittest
@@ -22,6 +23,52 @@ def write_svrdd_record(path: Path) -> None:
     }
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(record) + "\n", encoding="utf-8")
+
+
+def write_streetsurfacevis_manifest(root: Path) -> Path:
+    manifest = root / "docs/v2_streetsurfacevis_candidate_manifest.csv"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    fieldnames = (
+        "image_id",
+        "candidate_label",
+        "review_sample_id",
+        "human_review_decision",
+        "reviewer_notes",
+        "official_train",
+        "resolution_decision",
+        "sha256",
+        "relative_image_path",
+    )
+    examples = (
+        ("normal-1", "Normal_asphalt", "", "", "True", "eligible"),
+        ("unpaved-keep", "Unpaved_road", "SSV-001", "Keep", "True", "eligible"),
+        ("unpaved-unclear", "Unpaved_road", "SSV-055", "Unclear", "True", "eligible"),
+        ("protected", "Normal_asphalt", "", "", "False", "eligible"),
+        ("too-small", "Normal_asphalt", "", "", "True", "hold_below_224"),
+    )
+    with manifest.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        for image_id, label, sample_id, decision, official_train, resolution_decision in examples:
+            relative_path = f"data/raw/v2/streetsurfacevis/s_1024/{image_id}.jpg"
+            image_path = root / relative_path
+            image_path.parent.mkdir(parents=True, exist_ok=True)
+            image_bytes = f"streetsurfacevis-{image_id}".encode()
+            image_path.write_bytes(image_bytes)
+            writer.writerow(
+                {
+                    "image_id": image_id,
+                    "candidate_label": label,
+                    "review_sample_id": sample_id,
+                    "human_review_decision": decision,
+                    "reviewer_notes": "",
+                    "official_train": official_train,
+                    "resolution_decision": resolution_decision,
+                    "sha256": hashlib.sha256(image_bytes).hexdigest(),
+                    "relative_image_path": relative_path,
+                }
+            )
+    return manifest
 
 
 class BuildV2CandidateInventoryTests(unittest.TestCase):
@@ -72,9 +119,17 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
                     }
                 )
 
-            records = build_inventory(root, annotations, extracted, clean_split, review_manifest)
+            streetsurfacevis_manifest = write_streetsurfacevis_manifest(root)
+            records = build_inventory(
+                root,
+                annotations,
+                extracted,
+                clean_split,
+                review_manifest,
+                streetsurfacevis_manifest,
+            )
 
-        self.assertEqual(len(records), 3)
+        self.assertEqual(len(records), 5)
         paths = {record["source_image_path"] for record in records}
         self.assertIn("data/raw/v2/svrdd/extracted/train/images/Example/svrdd.jpg", paths)
         self.assertNotIn("data/raw/v2/svrdd/extracted/validation/images/Example/svrdd.jpg", paths)
@@ -84,6 +139,14 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
         self.assertNotIn("data/processed/clean_split/test/Pothole/v1-test.jpg", paths)
         self.assertIn("data/raw/v2/pavebench/approved.jpg", paths)
         self.assertNotIn("data/raw/v2/pavebench/excluded.jpg", paths)
+        self.assertIn("data/raw/v2/streetsurfacevis/s_1024/normal-1.jpg", paths)
+        self.assertIn("data/raw/v2/streetsurfacevis/s_1024/unpaved-keep.jpg", paths)
+        self.assertNotIn("data/raw/v2/streetsurfacevis/s_1024/unpaved-unclear.jpg", paths)
+        self.assertNotIn("data/raw/v2/streetsurfacevis/s_1024/protected.jpg", paths)
+        self.assertNotIn("data/raw/v2/streetsurfacevis/s_1024/too-small.jpg", paths)
+        street_records = [record for record in records if record["source_id"] == "StreetSurfaceVis"]
+        self.assertEqual({record["task_eligibility"] for record in street_records}, {"multi_class"})
+        self.assertEqual({record["proposed_multilabels"] for record in street_records}, {""})
 
     def test_exact_duplicates_are_flagged_not_silently_removed(self):
         records = [

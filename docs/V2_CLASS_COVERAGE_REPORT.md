@@ -1,7 +1,7 @@
 # V2 Class Coverage Report
 
-**Report date:** 2026-09-11  
-**Stage:** data coverage review before final splitting or training  
+**Report date:** 2026-09-13
+**Stage:** data coverage review before final splitting or training
 **Training status:** not approved
 
 ## Purpose
@@ -28,14 +28,15 @@ Adding these different units together would create a false total, so this report
 
 ## Source boundary
 
-The source-traceable candidate inventory contains 6,733 full-image records:
+The source-traceable candidate inventory contains 8,454 full-image records:
 
 | Source | Candidate records | Current role |
 | --- | ---: | --- |
 | SVRDD source training split | 6,000 | Four mapped road-condition labels with object boxes |
 | V1 clean training Pothole | 624 | Image-level pothole labels without object boxes |
 | PaveBench approved detection review | 109 | Individually reviewed candidates with boxes |
-| **Total** | **6,733** | Pre-split candidates, not a training dataset |
+| StreetSurfaceVis source training records | 1,721 | Sample-supported normal-asphalt and unpaved-road labels without boxes |
+| **Total** | **8,454** | Pre-split candidates, not a training dataset |
 
 The V1 validation and protected-test images and the SVRDD source validation and test records remain outside this inventory.
 
@@ -43,18 +44,18 @@ The V1 validation and protected-test images and the SVRDD source validation and 
 
 Multi-class classification gives one main label to each complete image. These counts use the documented priority rule when several conditions appear in the same photograph.
 
-| Main label | SVRDD | V1 | PaveBench | Total candidate images | Evidence note |
-| --- | ---: | ---: | ---: | ---: | --- |
-| `pothole` | 472 | 624 | 0 | **1,096** | V1 images are 64 x 64 and have no boxes. PaveBench potholes are excluded. |
-| `crack` | 3,907 | 0 | 98 | **4,005** | PaveBench contributes only individually approved Alligator and Crack records. |
-| `repaired_road` | 1,620 | 0 | 11 | **1,631** | A separate reviewed repaired-road crop pool is described below. |
-| `manhole_cover` | 1 | 0 | 0 | **1** | This is a priority-rule collapse, not a claim that SVRDD contains only one manhole. |
-| `unpaved_road` | 0 | 0 | 0 | **0** | No accepted dedicated source. |
-| `shadow` | 0 | 0 | 0 | **0** | No accepted dedicated source. |
-| `puddle` | 0 | 0 | 0 | **0** | No accepted dedicated source. |
-| `road_marking` | 0 | 0 | 0 | **0** | No accepted dedicated source. |
-| `road_stain` | 0 | 0 | 0 | **0** | No accepted dedicated source. |
-| `normal_asphalt` | 0 | 0 | 0 | **0** | V1 Normal images were rejected for V2 because their 64 x 64 resolution does not support a reliable clean-asphalt decision. |
+| Main label | SVRDD | V1 | PaveBench | StreetSurfaceVis | Total candidate images | Evidence note |
+| --- | ---: | ---: | ---: | ---: | ---: | --- |
+| `pothole` | 472 | 624 | 0 | 0 | **1,096** | V1 images are 64 x 64 and have no boxes. PaveBench potholes are excluded. |
+| `crack` | 3,907 | 0 | 98 | 0 | **4,005** | PaveBench contributes only individually approved Alligator and Crack records. |
+| `repaired_road` | 1,620 | 0 | 11 | 0 | **1,631** | A separate reviewed repaired-road crop pool is described below. |
+| `manhole_cover` | 1 | 0 | 0 | 0 | **1** | This is a priority-rule collapse, not a claim that SVRDD contains only one manhole. |
+| `unpaved_road` | 0 | 0 | 0 | 930 | **930** | Source-training records only; supported by a deterministic sample review. |
+| `shadow` | 0 | 0 | 0 | 0 | **0** | No accepted dedicated source. |
+| `puddle` | 0 | 0 | 0 | 0 | **0** | No accepted dedicated source. |
+| `road_marking` | 0 | 0 | 0 | 0 | **0** | No accepted dedicated source. |
+| `road_stain` | 0 | 0 | 0 | 0 | **0** | No accepted dedicated source. |
+| `normal_asphalt` | 0 | 0 | 0 | 791 | **791** | Source-training records only; supported by a deterministic sample review. |
 
 RAD's 539 source-labelled `UnsurfacedRoad` images are not added to this table.
 The visual review showed that its boxes may identify an unsurfaced shoulder or
@@ -67,7 +68,13 @@ least one side and inspected examples are close texture patches rather than
 complete road scenes. Zero images were accepted for `unpaved_road` or
 `normal_asphalt`.
 
-These counts show that the original full-image priority labels are not suitable for the planned ten-class model. Six required classes have no accepted examples, and the priority rule hides manholes inside images labelled as pothole, crack, or repaired road.
+StreetSurfaceVis contributes 1,721 candidates after excluding all records marked
+`official_train=False` and the unclear reviewed record `SSV-055`. Its lower-than-
+1,024-pixel images are allowed when both dimensions are at least 224 pixels.
+
+These counts show that the planned ten-class model is still not ready. Four
+required classes have no accepted examples, and the priority rule hides
+manholes inside images labelled as pothole, crack, or repaired road.
 
 ## Multi-label positive-image coverage
 
@@ -88,7 +95,13 @@ Multi-label classification can record more than one visible condition in the sam
 RAD's 539 `UnsurfacedRoad` records remain outside these totals because the
 manual review rejected the source-to-V2 mapping.
 
-`Normal_asphalt` cannot be derived yet because six required look-alike or surface labels are missing. The available records also have different annotation completeness: SVRDD maps all four supplied source conditions, while V1 and PaveBench do not prove the absence of every other V2 condition.
+StreetSurfaceVis is not added to these multi-label totals. Its source metadata
+provides one surface class per image but does not prove the absence of every
+other planned condition. Trustworthy all-negative multi-label records therefore
+still require complete nine-output review. The available sources have different
+annotation completeness: SVRDD maps all four supplied source conditions, while
+V1, PaveBench, and StreetSurfaceVis do not prove the absence of every other V2
+condition.
 
 ## Object-detection coverage
 
@@ -125,23 +138,26 @@ No reviewed single-condition crop pool currently exists for crack or pothole.
 
 | Planned task | Coverage decision | Reason |
 | --- | --- | --- |
-| Ten-class multi-class model | **Blocked** | Six labels have zero accepted examples, and the current full-image priority rule collapses manholes. |
+| Ten-class multi-class model | **Blocked** | Four labels have zero accepted examples, and the current full-image priority rule collapses manholes. |
 | Nine-output multi-label model | **Blocked** | Only four positive conditions are represented; required look-alike labels and trustworthy all-negative `Normal_asphalt` examples are missing. |
 | Nine-class object detector | **Blocked** | Only four object classes have boxes, pothole has the fewest boxes, and annotation completeness across all visible conditions is not yet proven. |
-| Four-condition research pilot | **Possible after more preparation** | Pothole, crack, repaired road, and manhole have traceable candidates, but formats, quality evidence, class balance, and split groups still need to be standardized. This pilot would not meet the final requirement to distinguish shadows, puddles, stains, markings, unpaved roads, and normal asphalt. |
+| Six-label multi-class research pilot | **Possible after more preparation** | Pothole, crack, repaired road, manhole, normal asphalt, and unpaved road have traceable candidates, but the manhole primary-label collapse, formats, quality evidence, class balance, and split groups still need resolution. This pilot would not meet the final requirement to distinguish shadows, puddles, stains, and markings. |
 
 ## What is ready
 
-- Candidate provenance is recorded for the current three sources.
+- Candidate provenance is recorded for the current four accepted sources.
 - Only source training data enters the candidate inventory.
 - V1 and SVRDD evaluation records remain reserved.
 - The 2,643 repaired-road crops and 101 manhole crops preserve original-image split groups.
 - PaveBench candidates are restricted to individually approved records.
 - Exact-duplicate evidence already exists for the original inventory and repaired-road crop pool.
+- StreetSurfaceVis adds 791 normal-asphalt and 930 unpaved-road multi-class
+  candidates; protected and unclear records remain outside the inventory.
 
 ## What is not ready
 
-1. Dedicated accepted data for `unpaved_road`, `shadow`, `puddle`, `road_marking`, `road_stain`, and `normal_asphalt`. RAD and Deep Pavements were reviewed and rejected for the current `unpaved_road` definition.
+1. Dedicated accepted data for `shadow`, `puddle`, `road_marking`, and
+   `road_stain`.
 2. A common image format and quality rule across pothole, crack, repaired-road, and manhole candidates.
 3. A reviewed single-condition crop pool for pothole and crack if the multi-class experiment uses crops.
 4. A final group-based train, validation, and protected-test split.
@@ -151,13 +167,11 @@ No reviewed single-condition crop pool currently exists for crack or pothole.
 
 ## Recommended next task
 
-Preflight another traceable full road-scene source for the missing labels. For
-`unpaved_road`, accept only examples where the main drivable road surface is
-unpaved. Do not accept asphalt-road scenes merely because they include a dirt
-shoulder, and do not accept close-up surface textures that lack driving-scene
-context. Prefer per-image provenance or a clearly traceable licence. Sample one
-representative per recording group before any extra video frames, and check
-exact and near duplicates before future split planning.
+Preflight traceable full road-scene sources for `shadow`, `puddle`,
+`road_marking`, and `road_stain`. Review each source URL and licence before
+downloading it. Prefer per-image provenance, sample one representative per
+recording group before extra video frames, and check exact and near duplicates
+before future split planning.
 
 Training remains blocked until the selected task has complete labels, a documented split, and a completed Data Gate.
 
@@ -177,3 +191,5 @@ Training remains blocked until the selected task has complete labels, a document
 - `docs/V2_RAD_DATA_AUDIT.md`
 - `docs/V2_RAD_VISUAL_REVIEW.md`
 - `docs/V2_DEEP_PAVEMENTS_PREFLIGHT_AUDIT.md`
+- `docs/v2_streetsurfacevis_candidate_manifest.csv`
+- `reports/v2_streetsurfacevis_review/StreetSurfaceVis_Normal_Unpaved_Review.xlsx`

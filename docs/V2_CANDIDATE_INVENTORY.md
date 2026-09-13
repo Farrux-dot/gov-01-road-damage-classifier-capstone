@@ -1,7 +1,7 @@
 # V2 Source-Traceable Candidate Inventory
 
-**Inventory date:** 2026-09-09  
-**Stage:** candidate inventory before near-duplicate review, final labelling, and splitting  
+**Inventory date:** 2026-09-13
+**Stage:** candidate inventory before near-duplicate review, final labelling, and splitting
 **Training status:** not approved
 
 ## Purpose
@@ -46,6 +46,20 @@ steps can trace and compare every candidate.
 - Included no PaveBench pothole records and no unclear, wrong-label, or
   wrong-box records.
 
+### StreetSurfaceVis
+
+- Included only source records marked `official_train=True` whose width and
+  height are both at least 224 pixels.
+- Included 791 `normal_asphalt` candidates and 930 `unpaved_road` candidates.
+- The deterministic 100-image review supported 40/40 sampled normal-asphalt
+  records and 59/60 sampled unpaved-road records. The unclear record
+  `SSV-055` was excluded.
+- Excluded all 265 records marked `official_train=False`, including the 17
+  protected records below 1,024 pixels. Resolution never overrides split
+  protection.
+- These records support multi-class classification only. They do not provide
+  complete nine-output multi-label truth or object boxes.
+
 ## Candidate counts by source
 
 | Source | Candidate image records | Current meaning |
@@ -53,7 +67,8 @@ steps can trace and compare every candidate.
 | SVRDD source training split | 6,000 | Mapped pre-split source candidates with boxes |
 | V1 clean training Pothole | 624 | Image-level pothole candidates without boxes |
 | PaveBench individually approved detection records | 109 | Human-reviewed candidates with boxes |
-| **Total** | **6,733** | Not a final training split |
+| StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes |
+| **Total** | **8,454** | Not a final training split |
 
 ## Task eligibility
 
@@ -61,6 +76,7 @@ steps can trace and compare every candidate.
 | --- | ---: | --- |
 | Multi-class, multi-label, and object detection | 6,109 | SVRDD and reviewed PaveBench records have boxes |
 | Multi-class and multi-label only | 624 | V1 pothole records have no boxes |
+| Multi-class only | 1,721 | StreetSurfaceVis has surface labels but no boxes or complete multi-label truth |
 
 Task eligibility does not mean the data is ready for training. Remaining label,
 near-duplicate, imbalance, and split checks still apply.
@@ -73,6 +89,8 @@ near-duplicate, imbalance, and split checks still apply.
 | `repaired_road` | 1,631 |
 | `pothole` | 1,096 |
 | `manhole_cover` | 1 |
+| `normal_asphalt` | 791 |
+| `unpaved_road` | 930 |
 
 The `manhole_cover` count of one is a serious feasibility warning. It does not
 mean SVRDD contains only one manhole. The provisional one-label priority rule
@@ -115,8 +133,8 @@ not have boxes.
 
 | Check | Result |
 | --- | ---: |
-| Candidate IDs | 6,733 unique |
-| Candidate source paths | 6,733 existing files |
+| Candidate IDs | 8,454 unique |
+| Candidate source paths | 8,454 existing files |
 | Exact SHA-256 duplicate groups | 0 |
 | Records in exact-duplicate groups | 0 |
 | V1 validation or protected-test records included | 0 |
@@ -133,6 +151,8 @@ final split.
 - V1 Kaggle source: CC0 was listed when the project plan was created; recheck
   before redistribution.
 - PaveBench: CC BY-NC-SA 4.0; this is non-commercial and share-alike.
+- StreetSurfaceVis: CC-BY-SA is stated on the official Zenodo record; recheck
+  before redistribution.
 
 The inventory contains paths and evidence only. It does not redistribute the
 raw images.
@@ -142,7 +162,7 @@ raw images.
 1. Resolve the single-label `manhole_cover` collapse before multi-class model
    construction.
 2. Add or human-label the remaining look-alike conditions: shadow, puddle,
-   road stain, road marking, normal asphalt, and unpaved road.
+   road stain, and road marking.
 3. Check near duplicates and source groups, not only byte-identical files.
 4. Decide task-specific inclusion rules because V1 potholes cannot support
    object detection without boxes.

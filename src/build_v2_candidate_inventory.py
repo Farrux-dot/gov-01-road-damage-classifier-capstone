@@ -21,6 +21,10 @@ PAVEBENCH_TO_V2 = {
     "crack": "crack",
     "patch": "repaired_road",
 }
+STREETSURFACEVIS_TO_V2 = {
+    "Normal_asphalt": "normal_asphalt",
+    "Unpaved_road": "unpaved_road",
+}
 MULTILABEL_KEYS = {
     "pothole_present": "pothole",
     "crack_present": "crack",
@@ -227,6 +231,78 @@ def build_pavebench_candidates(
     return records
 
 
+def build_streetsurfacevis_candidates(
+    repository_root: Path,
+    candidate_manifest: Path,
+) -> list[dict[str, Any]]:
+    """Create multi-class candidates from eligible StreetSurfaceVis training records."""
+    if not candidate_manifest.is_file():
+        raise FileNotFoundError(f"Missing StreetSurfaceVis candidate manifest: {candidate_manifest}")
+    records: list[dict[str, Any]] = []
+    with candidate_manifest.open(newline="", encoding="utf-8-sig") as file:
+        for row_number, row in enumerate(csv.DictReader(file), start=2):
+            if str(row.get("official_train", "")).strip().lower() != "true":
+                continue
+            if str(row.get("resolution_decision", "")).strip().lower() != "eligible":
+                continue
+            review_decision = str(row.get("human_review_decision", "")).strip()
+            if review_decision.lower() in {"exclude", "unclear"}:
+                continue
+            if review_decision and review_decision.lower() != "keep":
+                raise ValueError(
+                    f"Unsupported StreetSurfaceVis review decision on row {row_number}: {review_decision}"
+                )
+            source_label = str(row.get("candidate_label", "")).strip()
+            if source_label not in STREETSURFACEVIS_TO_V2:
+                raise ValueError(
+                    f"Unsupported StreetSurfaceVis candidate label on row {row_number}: {source_label}"
+                )
+            image_id = str(row.get("image_id", "")).strip()
+            source_path = str(row.get("relative_image_path", "")).strip().replace("\\", "/")
+            expected_sha256 = str(row.get("sha256", "")).strip().lower()
+            if not image_id or not source_path or not expected_sha256:
+                raise ValueError(f"Incomplete StreetSurfaceVis record on row {row_number}")
+            image_path = repository_root / Path(source_path)
+            actual_sha256 = checked_digest(image_path)
+            if actual_sha256 != expected_sha256:
+                raise ValueError(f"StreetSurfaceVis SHA-256 mismatch on row {row_number}: {source_path}")
+            proposed_label = STREETSURFACEVIS_TO_V2[source_label]
+            sample_id = str(row.get("review_sample_id", "")).strip()
+            records.append(
+                {
+                    "candidate_id": f"streetsurfacevis::train::{image_id}",
+                    "source_id": "StreetSurfaceVis",
+                    "source_url": "https://zenodo.org/records/11449977",
+                    "license_record": "CC-BY-SA stated on Zenodo record; recheck before redistribution",
+                    "original_source_split": "train",
+                    "source_record_id": image_id,
+                    "source_image_path": repository_relative(image_path, repository_root),
+                    "source_annotation_path": repository_relative(candidate_manifest, repository_root),
+                    "review_sample_id": sample_id,
+                    "task_eligibility": "multi_class",
+                    "boxes_available": "no",
+                    "object_count": "",
+                    "object_labels": "",
+                    "object_label_counts": "",
+                    "proposed_multiclass_label": proposed_label,
+                    "proposed_multilabels": "",
+                    "review_basis": (
+                        "individual human approval in StreetSurfaceVis sample review"
+                        if review_decision.lower() == "keep"
+                        else "source label supported by deterministic human-reviewed sample"
+                    ),
+                    "candidate_status": (
+                        "pre_split_individually_reviewed_candidate"
+                        if review_decision.lower() == "keep"
+                        else "pre_split_source_labeled_sample_supported_candidate"
+                    ),
+                    "sha256": actual_sha256,
+                    "exact_duplicate_group_id": "",
+                }
+            )
+    return records
+
+
 def mark_exact_duplicates(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Mark exact duplicate groups without silently deleting any candidate."""
     by_hash: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -317,12 +393,14 @@ def build_inventory(
     svrdd_extracted_dir: Path,
     v1_clean_split_dir: Path,
     pavebench_review_manifest: Path,
+    streetsurfacevis_candidate_manifest: Path,
 ) -> list[dict[str, Any]]:
     """Build and validate all currently eligible candidate sources."""
     records = [
         *build_svrdd_candidates(repository_root, svrdd_annotations_dir, svrdd_extracted_dir),
         *build_v1_pothole_candidates(repository_root, v1_clean_split_dir),
         *build_pavebench_candidates(repository_root, pavebench_review_manifest),
+        *build_streetsurfacevis_candidates(repository_root, streetsurfacevis_candidate_manifest),
     ]
     records = sorted(records, key=lambda record: str(record["candidate_id"]))
     mark_exact_duplicates(records)
@@ -337,6 +415,7 @@ def main() -> None:
     parser.add_argument("--svrdd-extracted-dir", type=Path, required=True)
     parser.add_argument("--v1-clean-split-dir", type=Path, required=True)
     parser.add_argument("--pavebench-review-manifest", type=Path, required=True)
+    parser.add_argument("--streetsurfacevis-candidate-manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
@@ -347,6 +426,7 @@ def main() -> None:
         args.svrdd_extracted_dir,
         args.v1_clean_split_dir,
         args.pavebench_review_manifest,
+        args.streetsurfacevis_candidate_manifest,
     )
     report = summarize(records)
     write_inventory(records, args.output)
