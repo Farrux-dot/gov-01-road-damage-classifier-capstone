@@ -1,0 +1,6 @@
+Source: Donghyun99/SRD (Hugging Face mirror)
+Split used: train only; test split was not downloaded or used.
+Selection purpose: review candidates for road-surface shadows, not model training.
+The 24 images were selected after removing obvious non-road views and repeated camera scenes.
+Human approval is required before any integration.
+License and provenance must be confirmed from the original source before use beyond local review.

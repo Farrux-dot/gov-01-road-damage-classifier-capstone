@@ -1,0 +1,29 @@
+{
+  "dataset": "Donghyun99/SRD",
+  "split_used": "train",
+  "test_split_used": false,
+  "train_rows_seen": 2675,
+  "sequence_groups_found": 100,
+  "download_attempts": 195,
+  "downloaded": 195,
+  "download_failures": 0,
+  "exact_duplicates_removed": 0,
+  "near_duplicates_removed": 7,
+  "shortlisted": 100,
+  "status": "pending_human_review_not_integrated",
+  "purpose": "road-surface shadow candidate review",
+  "target_surfaces": [
+    "asphalt",
+    "street",
+    "sidewalk",
+    "curb",
+    "paved ground"
+  ],
+  "contact_sheets": [
+    "reports/v2_srd_road_shadow_review/srd_train_road_shadow_candidates_page_1.jpg",
+    "reports/v2_srd_road_shadow_review/srd_train_road_shadow_candidates_page_2.jpg",
+    "reports/v2_srd_road_shadow_review/srd_train_road_shadow_candidates_page_3.jpg",
+    "reports/v2_srd_road_shadow_review/srd_train_road_shadow_candidates_page_4.jpg",
+    "reports/v2_srd_road_shadow_review/srd_train_road_shadow_candidates_page_5.jpg"
+  ]
+}
