@@ -1,6 +1,6 @@
 # V2 Source-Traceable Candidate Inventory
 
-**Inventory date:** 2026-09-13
+**Inventory date:** 2026-09-17
 **Stage:** candidate inventory before near-duplicate review, final labelling, and splitting
 **Training status:** not approved
 
@@ -37,14 +37,15 @@ steps can trace and compare every candidate.
 - These 624 images have image-level pothole labels but no object boxes, so they
   cannot train object detection without new manual box annotations.
 
-### PaveBench
+### GitHub pothole-detection
 
-- Included only 109 individually approved detection-review records: 55
-  Alligator, 43 Crack, and 11 Patch records.
-- Mapped approved Alligator and Crack records to V2 `crack`.
-- Mapped approved Patch records to V2 `repaired_road`.
-- Included no PaveBench pothole records and no unclear, wrong-label, or
-  wrong-box records.
+- Included 1,241 `keep` records from the student-approved GitHub pothole audit.
+- The source supplies YOLO-format pothole boxes; the included records contain
+  4,061 valid pothole boxes.
+- Two byte-identical duplicate image copies and one invalid zero-width source
+  box line were excluded by the audit before inventory integration.
+- This is an unsplit source collection. It is a pre-split candidate source,
+  not a validation or test set.
 
 ### StreetSurfaceVis
 
@@ -79,16 +80,16 @@ steps can trace and compare every candidate.
 | --- | ---: | --- |
 | SVRDD source training split | 6,000 | Mapped pre-split source candidates with boxes |
 | V1 clean training Pothole | 624 | Image-level pothole candidates without boxes |
-| PaveBench individually approved detection records | 109 | Human-reviewed candidates with boxes |
+| GitHub pothole-detection | 1,241 | Student-approved pothole candidates with YOLO boxes |
 | StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes |
 | CeyMo duplicate-safe source-training candidates | 2,097 | Road-marking-positive images with boxes; no automatic primary label |
-| **Total** | **10,551** | Not a final training split |
+| **Total** | **11,683** | Not a final training split |
 
 ## Task eligibility
 
 | Possible task support | Images | Meaning |
 | --- | ---: | --- |
-| Multi-class, multi-label, and object detection | 6,109 | SVRDD and reviewed PaveBench records have boxes |
+| Multi-class, multi-label, and object detection | 7,241 | SVRDD and GitHub pothole records have boxes |
 | Multi-class and multi-label only | 624 | V1 pothole records have no boxes |
 | Multi-class only | 1,721 | StreetSurfaceVis has surface labels but no boxes or complete multi-label truth |
 | Multi-label and object detection | 2,097 | CeyMo confirms road-marking presence and boxes, but not a complete multi-class scene label |
@@ -100,9 +101,9 @@ near-duplicate, imbalance, and split checks still apply.
 
 | Primary label | Candidate images |
 | --- | ---: |
-| `crack` | 4,005 |
-| `repaired_road` | 1,631 |
-| `pothole` | 1,096 |
+| `crack` | 3,907 |
+| `repaired_road` | 1,620 |
+| `pothole` | 2,337 |
 | `manhole_cover` | 1 |
 | `normal_asphalt` | 791 |
 | `unpaved_road` | 930 |
@@ -129,10 +130,10 @@ One image may appear in more than one row of this summary:
 
 | Positive condition | Images containing the condition |
 | --- | ---: |
-| `crack` | 4,351 |
-| `repaired_road` | 2,088 |
+| `crack` | 4,253 |
+| `repaired_road` | 2,077 |
 | `manhole_cover` | 1,688 |
-| `pothole` | 1,096 |
+| `pothole` | 2,337 |
 | `road_marking` | 2,097 |
 
 These counts show that multi-label classification represents mixed-condition
@@ -142,10 +143,10 @@ images more honestly than the current single-label priority rule.
 
 | Box label | Objects |
 | --- | ---: |
-| `crack` | 7,433 |
-| `repaired_road` | 5,100 |
+| `crack` | 7,335 |
+| `repaired_road` | 5,089 |
 | `manhole_cover` | 2,517 |
-| `pothole` | 679 |
+| `pothole` | 4,740 |
 | `road_marking` | 3,484 |
 
 The 624 V1 pothole images are not included in the object count because they do
@@ -155,8 +156,8 @@ not have boxes.
 
 | Check | Result |
 | --- | ---: |
-| Candidate IDs | 10,551 unique |
-| Candidate source paths | 10,551 existing files |
+| Candidate IDs | 11,683 unique |
+| Candidate source paths | 11,683 existing files |
 | Exact SHA-256 duplicate groups | 0 |
 | Records in exact-duplicate groups | 0 |
 | V1 validation or protected-test records included | 0 |
@@ -172,7 +173,8 @@ final split.
 - SVRDD: CC BY 4.0 stated on the dataset card; recheck before redistribution.
 - V1 Kaggle source: CC0 was listed when the project plan was created; recheck
   before redistribution.
-- PaveBench: CC BY-NC-SA 4.0; this is non-commercial and share-alike.
+- GitHub pothole-detection: MIT licence is stated in the source repository;
+  recheck before redistributing any files.
 - StreetSurfaceVis: CC-BY-SA is stated on the official Zenodo record; recheck
   before redistribution.
 - CeyMo: the official repository contains an MIT licence; confirm that it
@@ -196,6 +198,6 @@ raw images.
 
 ## Current decision
 
-**All currently accepted sources, including duplicate-safe CeyMo road-marking
-records, are integrated. This is pre-split evidence, not a training dataset.
-V2 training remains blocked.**
+**All currently accepted sources, including the audited GitHub pothole source
+and duplicate-safe CeyMo road-marking records, are integrated. This is
+pre-split evidence, not a training dataset. V2 training remains blocked.**

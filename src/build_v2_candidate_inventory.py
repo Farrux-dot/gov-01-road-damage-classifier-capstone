@@ -16,11 +16,6 @@ from typing import Any, Iterable
 
 SVRDD_CANDIDATE_SPLITS = ("train",)
 SVRDD_RESERVED_SPLITS = ("validation", "test")
-PAVEBENCH_TO_V2 = {
-    "alligator": "crack",
-    "crack": "crack",
-    "patch": "repaired_road",
-}
 STREETSURFACEVIS_TO_V2 = {
     "Normal_asphalt": "normal_asphalt",
     "Unpaved_road": "unpaved_road",
@@ -186,46 +181,58 @@ def build_v1_pothole_candidates(
     return records
 
 
-def build_pavebench_candidates(
+def build_github_pothole_candidates(
     repository_root: Path,
-    review_manifest: Path,
+    candidate_manifest: Path,
 ) -> list[dict[str, Any]]:
-    """Create candidates only from individually approved PaveBench records."""
-    if not review_manifest.is_file():
-        raise FileNotFoundError(f"Missing PaveBench review manifest: {review_manifest}")
+    """Create box-labelled pothole candidates from the approved GitHub audit manifest."""
+    if not candidate_manifest.is_file():
+        raise FileNotFoundError(f"Missing GitHub pothole candidate manifest: {candidate_manifest}")
     records: list[dict[str, Any]] = []
-    with review_manifest.open(newline="", encoding="utf-8-sig") as file:
+    with candidate_manifest.open(newline="", encoding="utf-8-sig") as file:
         for row_number, row in enumerate(csv.DictReader(file), start=2):
-            if row.get("record_action") != "candidate_keep_reviewed_sample":
+            decision = str(row.get("decision", "")).strip().lower()
+            if decision == "exclude":
                 continue
-            source_class = str(row.get("source_class", "")).strip().lower()
-            if source_class not in PAVEBENCH_TO_V2:
-                raise ValueError(f"Unsupported approved PaveBench class on row {row_number}: {source_class}")
-            proposed_label = PAVEBENCH_TO_V2[source_class]
-            sample_id = str(row.get("sample_id", "")).strip()
-            source_path = str(row.get("source_file", "")).strip().replace("\\", "/")
+            if decision != "keep":
+                raise ValueError(f"Unsupported GitHub pothole decision on row {row_number}: {decision}")
+            source_record_id = str(row.get("source_id", "")).strip()
+            source_path = str(row.get("relative_image_path", "")).strip().replace("\\", "/")
+            annotation_path = str(row.get("relative_label_path", "")).strip().replace("\\", "/")
+            expected_sha256 = str(row.get("sha256", "")).strip().lower()
+            valid_boxes = int(str(row.get("valid_pothole_boxes", "0")).strip())
+            if not source_record_id or not source_path or not annotation_path or not expected_sha256:
+                raise ValueError(f"Incomplete GitHub pothole record on row {row_number}")
+            if valid_boxes <= 0:
+                raise ValueError(f"GitHub pothole candidate has no valid boxes on row {row_number}")
             image_path = repository_root / Path(source_path)
+            label_path = repository_root / Path(annotation_path)
+            actual_sha256 = checked_digest(image_path)
+            if actual_sha256 != expected_sha256:
+                raise ValueError(f"GitHub pothole SHA-256 mismatch on row {row_number}: {source_path}")
+            if not label_path.is_file():
+                raise FileNotFoundError(f"Missing GitHub pothole YOLO label: {label_path}")
             records.append(
                 {
-                    "candidate_id": f"pavebench::{sample_id}",
-                    "source_id": "PaveBench_detection_reviewed",
-                    "source_url": "https://huggingface.co/datasets/VVQNN/PaveBench",
-                    "license_record": "CC BY-NC-SA 4.0 stated on dataset card",
-                    "original_source_split": "train",
-                    "source_record_id": image_path.name,
+                    "candidate_id": f"github_pothole::{source_record_id}",
+                    "source_id": "jaygala24_pothole_detection",
+                    "source_url": "https://github.com/jaygala24/pothole-detection",
+                    "license_record": "MIT licence in the source repository; recheck before redistribution",
+                    "original_source_split": "unsplit_source_collection",
+                    "source_record_id": source_record_id,
                     "source_image_path": repository_relative(image_path, repository_root),
-                    "source_annotation_path": "data/raw/v2/pavebench/data/Distress_Detection/annotations/instances_train.json",
-                    "review_sample_id": sample_id,
+                    "source_annotation_path": repository_relative(label_path, repository_root),
+                    "review_sample_id": "",
                     "task_eligibility": "multi_class;multi_label;object_detection",
                     "boxes_available": "yes",
-                    "object_count": 1,
-                    "object_labels": proposed_label,
-                    "object_label_counts": f"{proposed_label}:1",
-                    "proposed_multiclass_label": proposed_label,
-                    "proposed_multilabels": proposed_label,
-                    "review_basis": "individual human approval in detection-label review",
-                    "candidate_status": "pre_split_individually_reviewed_candidate",
-                    "sha256": checked_digest(image_path),
+                    "object_count": valid_boxes,
+                    "object_labels": "pothole",
+                    "object_label_counts": f"pothole:{valid_boxes}",
+                    "proposed_multiclass_label": "pothole",
+                    "proposed_multilabels": "pothole",
+                    "review_basis": "source YOLO boxes; duplicate and invalid-box exclusions recorded in audit; human visual quality approved",
+                    "candidate_status": "pre_split_source_candidate",
+                    "sha256": actual_sha256,
                     "exact_duplicate_group_id": "",
                 }
             )
@@ -460,7 +467,7 @@ def build_inventory(
     svrdd_annotations_dir: Path,
     svrdd_extracted_dir: Path,
     v1_clean_split_dir: Path,
-    pavebench_review_manifest: Path,
+    github_pothole_candidate_manifest: Path,
     streetsurfacevis_candidate_manifest: Path,
     ceymo_candidate_manifest: Path,
 ) -> list[dict[str, Any]]:
@@ -468,7 +475,7 @@ def build_inventory(
     records = [
         *build_svrdd_candidates(repository_root, svrdd_annotations_dir, svrdd_extracted_dir),
         *build_v1_pothole_candidates(repository_root, v1_clean_split_dir),
-        *build_pavebench_candidates(repository_root, pavebench_review_manifest),
+        *build_github_pothole_candidates(repository_root, github_pothole_candidate_manifest),
         *build_streetsurfacevis_candidates(repository_root, streetsurfacevis_candidate_manifest),
         *build_ceymo_candidates(repository_root, ceymo_candidate_manifest),
     ]
@@ -484,7 +491,7 @@ def main() -> None:
     parser.add_argument("--svrdd-annotations-dir", type=Path, required=True)
     parser.add_argument("--svrdd-extracted-dir", type=Path, required=True)
     parser.add_argument("--v1-clean-split-dir", type=Path, required=True)
-    parser.add_argument("--pavebench-review-manifest", type=Path, required=True)
+    parser.add_argument("--github-pothole-candidate-manifest", type=Path, required=True)
     parser.add_argument("--streetsurfacevis-candidate-manifest", type=Path, required=True)
     parser.add_argument("--ceymo-candidate-manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
@@ -496,7 +503,7 @@ def main() -> None:
         args.svrdd_annotations_dir,
         args.svrdd_extracted_dir,
         args.v1_clean_split_dir,
-        args.pavebench_review_manifest,
+        args.github_pothole_candidate_manifest,
         args.streetsurfacevis_candidate_manifest,
         args.ceymo_candidate_manifest,
     )

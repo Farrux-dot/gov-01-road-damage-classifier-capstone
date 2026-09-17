@@ -119,6 +119,45 @@ def write_ceymo_manifest(root: Path) -> Path:
     return manifest
 
 
+def write_github_pothole_manifest(root: Path) -> Path:
+    manifest = root / "docs/v2_github_pothole_candidate_manifest.csv"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    image = root / "data/raw/v2/pothole_github/Pothole Dataset/pothole.jpg"
+    label = root / "data/raw/v2/pothole_github/Pothole Dataset/pothole.txt"
+    image.parent.mkdir(parents=True, exist_ok=True)
+    image_bytes = b"github-pothole"
+    image.write_bytes(image_bytes)
+    label.write_text("0 0.5 0.5 0.2 0.2\n", encoding="utf-8")
+    fieldnames = (
+        "source_id", "relative_image_path", "relative_label_path", "sha256",
+        "valid_pothole_boxes", "decision",
+    )
+    with manifest.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerow(
+            {
+                "source_id": "github_pothole::keep",
+                "relative_image_path": "data/raw/v2/pothole_github/Pothole Dataset/pothole.jpg",
+                "relative_label_path": "data/raw/v2/pothole_github/Pothole Dataset/pothole.txt",
+                "sha256": hashlib.sha256(image_bytes).hexdigest(),
+                "valid_pothole_boxes": "1",
+                "decision": "keep",
+            }
+        )
+        writer.writerow(
+            {
+                "source_id": "github_pothole::excluded",
+                "relative_image_path": "data/raw/v2/pothole_github/Pothole Dataset/excluded.jpg",
+                "relative_label_path": "data/raw/v2/pothole_github/Pothole Dataset/excluded.txt",
+                "sha256": "excluded",
+                "valid_pothole_boxes": "1",
+                "decision": "exclude",
+            }
+        )
+    return manifest
+
+
 class BuildV2CandidateInventoryTests(unittest.TestCase):
     def test_inventory_uses_only_eligible_sources_and_keeps_v1_evaluation_reserved(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -137,36 +176,7 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
                 image.parent.mkdir(parents=True, exist_ok=True)
                 image.write_bytes(f"v1-{split}".encode())
 
-            pave_image = root / "data/raw/v2/pavebench/approved.jpg"
-            pave_image.parent.mkdir(parents=True, exist_ok=True)
-            pave_image.write_bytes(b"approved-pavebench")
-            excluded_image = root / "data/raw/v2/pavebench/excluded.jpg"
-            excluded_image.write_bytes(b"excluded-pavebench")
-            review_manifest = root / "docs/v2_pavebench_detection_review_manifest.csv"
-            review_manifest.parent.mkdir(parents=True, exist_ok=True)
-            with review_manifest.open("w", newline="", encoding="utf-8") as file:
-                writer = csv.DictWriter(
-                    file,
-                    fieldnames=("sample_id", "source_class", "source_file", "record_action"),
-                )
-                writer.writeheader()
-                writer.writerow(
-                    {
-                        "sample_id": "approved-1",
-                        "source_class": "alligator",
-                        "source_file": "data/raw/v2/pavebench/approved.jpg",
-                        "record_action": "candidate_keep_reviewed_sample",
-                    }
-                )
-                writer.writerow(
-                    {
-                        "sample_id": "excluded-1",
-                        "source_class": "crack",
-                        "source_file": "data/raw/v2/pavebench/excluded.jpg",
-                        "record_action": "exclude_unclear",
-                    }
-                )
-
+            github_pothole_manifest = write_github_pothole_manifest(root)
             streetsurfacevis_manifest = write_streetsurfacevis_manifest(root)
             ceymo_manifest = write_ceymo_manifest(root)
             records = build_inventory(
@@ -174,7 +184,7 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
                 annotations,
                 extracted,
                 clean_split,
-                review_manifest,
+                github_pothole_manifest,
                 streetsurfacevis_manifest,
                 ceymo_manifest,
             )
@@ -187,8 +197,8 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
         self.assertIn("data/processed/clean_split/train/Pothole/v1-train.jpg", paths)
         self.assertNotIn("data/processed/clean_split/validation/Pothole/v1-validation.jpg", paths)
         self.assertNotIn("data/processed/clean_split/test/Pothole/v1-test.jpg", paths)
-        self.assertIn("data/raw/v2/pavebench/approved.jpg", paths)
-        self.assertNotIn("data/raw/v2/pavebench/excluded.jpg", paths)
+        self.assertIn("data/raw/v2/pothole_github/Pothole Dataset/pothole.jpg", paths)
+        self.assertNotIn("data/raw/v2/pothole_github/Pothole Dataset/excluded.jpg", paths)
         self.assertIn("data/raw/v2/streetsurfacevis/s_1024/normal-1.jpg", paths)
         self.assertIn("data/raw/v2/streetsurfacevis/s_1024/unpaved-keep.jpg", paths)
         self.assertNotIn("data/raw/v2/streetsurfacevis/s_1024/unpaved-unclear.jpg", paths)
@@ -205,6 +215,9 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
         self.assertEqual(ceymo_records[0]["proposed_multiclass_label"], "")
         self.assertEqual(ceymo_records[0]["proposed_multilabels"], "road_marking")
         self.assertEqual(ceymo_records[0]["object_label_counts"], "road_marking:2")
+        github_records = [record for record in records if record["source_id"] == "jaygala24_pothole_detection"]
+        self.assertEqual(len(github_records), 1)
+        self.assertEqual(github_records[0]["object_label_counts"], "pothole:1")
 
     def test_exact_duplicates_are_flagged_not_silently_removed(self):
         records = [

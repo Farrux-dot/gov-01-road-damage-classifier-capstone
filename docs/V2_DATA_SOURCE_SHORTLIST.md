@@ -1,163 +1,34 @@
-# V2 Data Source Shortlist and Acquisition Plan
+# V2 Data Source Shortlist
 
-## Purpose and boundary
+**Updated:** 2026-09-17
+**Rule:** only documented, still-available sources may enter the V2 candidate
+inventory. Raw images and archives remain Git ignored.
 
-This is a source shortlist for the experimental V2 road-condition work on branch `codex/road-condition-v2`. It is **not** evidence that any V2 dataset has been downloaded, audited, or approved for training.
+## Integrated sources
 
-V1 data, V1 splits, V1 protected-test results, and the deployed V1 app remain unchanged.
+| Source | URL | Current use | Important boundary |
+| --- | --- | --- | --- |
+| SVRDD YOLO | https://huggingface.co/datasets/ShuoZheLi/SVRDD_YOLO | Boxes for pothole, crack, manhole cover, and repaired road | Only source-training records are candidates; source validation/test remain reserved. |
+| V1 Kaggle pothole dataset | https://www.kaggle.com/datasets/abhinavkulshreshth/pothole-detection-dataset | Image-level pothole candidates | Only clean V1 training potholes are eligible; no boxes. |
+| GitHub pothole-detection | https://github.com/jaygala24/pothole-detection | Pothole boxes | 1,241 approved records and 4,061 valid boxes; unsplit source collection. |
+| StreetSurfaceVis | https://zenodo.org/records/11449977 | Normal asphalt and unpaved road | Image-level labels only; non-training source records remain excluded. |
+| CeyMo | https://github.com/oshadajay/CeyMo | Road-marking boxes | Road marking is positive evidence only; other conditions are not exhaustively labelled. |
 
-## Decision: use a source combination, not one dataset
+## Deferred sources
 
-No reviewed source contains every V2 label. The chosen future V2 pool must combine:
+| Source | URL | Reason |
+| --- | --- | --- |
+| RDD2022 | https://figshare.com/articles/dataset/RDD2022_-_The_multi-national_Road_Damage_Dataset_released_through_CRDDC_2022/21431547 | Official archive download was throttled; do not use until a new official access route is verified. |
+| N-RDD2024 | https://data.mendeley.com/datasets/27c8pwsd6v/5 | Not downloaded or audited for this project. |
 
-1. a licensed road-damage source for potholes and cracks;
-2. a licensed source or permission-based collection for repaired patches, unpaved roads, and road look-alikes; and
-3. manual V2 labeling using `docs/V2_ROAD_CONDITION_LABELING_GUIDE.md`.
+## Missing-label rule
 
-Images must not be downloaded into Git. Store raw archives and raw images in an ignored `data/raw/v2/` location only after recording the source, license, download date, and intended use.
+Shadow, puddle, and road stain remain open gaps. A future source must document
+its licence, intended V2 label, and how its images are verified before it is
+added. Generic negative images are not ground truth for these conditions.
 
-## Reviewed candidates
+## Current decision
 
-| Candidate | Verified information | V2 labels it can help with | Suitable approach | Decision |
-| --- | --- | --- | --- | --- |
-| [SVRDD_YOLO](https://huggingface.co/datasets/ShuoZheLi/SVRDD_YOLO) | Dataset card lists 8,000 images, 20,804 annotated objects, a total size of 3.92 GB, and YOLO-format annotations. Its classes include three crack types, potholes, manhole covers, and longitudinal/transverse patches. The card states CC BY 4.0. | `Pothole`, `Crack`, `Manhole`, `Repaired_road` | Object detection; multi-label after conversion | **Acquired and structurally audited on 2026-09-02.** V2 label conversion, visual sample review, and a new V2 split are still required before training. |
-| [RDD2022 official dataset record](https://figshare.com/articles/dataset/RDD2022_-_The_multi-national_Road_Damage_Dataset_released_through_CRDDC_2022/21431547) | The official Figshare record lists CC BY 4.0. It reports 47,420 road images from six countries, over 55,000 damage instances, and four damage types: longitudinal crack, transverse crack, alligator crack, and pothole. The full archive is 12.36 GB. | `Pothole`, `Crack` | Object detection; multi-label after a documented label conversion | **Deferred.** Its host was too slow during the 2026-09-01 attempted download. Do not use the country links that returned HTTP 403. |
-| [N-RDD2024 official dataset record](https://data.mendeley.com/datasets/27c8pwsd6v/5) | The official Mendeley record lists CC BY 4.0, ten road-condition labels, and a 6.58 GB complete download. | `Pothole`, `Crack`, `Manhole`, `Repaired_road`, `Road_marking` look-alikes | Object detection; multi-label after conversion | **Deferred.** The host throttled the complete download; it is not the first V2 acquisition. |
-| [CeyMo](https://github.com/oshadajay/CeyMo) | The official source provides 2,099 train images at 1,920 x 1,080 with polygon, box, and mask annotations for 11 kinds of road markings. | `Road_marking` | Object detection and road-marking-positive multi-label evidence; multi-class only after cross-condition review | **Downloaded, audited, deduplicated, and inventoried on 2026-09-13.** The student approved the visible quality and marking examples. All 2,099 source images are readable; two redundant copies were excluded, leaving 2,097 candidate images and 3,484 boxes. Three source-annotation warnings remain documented. The repository contains an MIT licence, but applicability to dataset-file redistribution must be confirmed before images are redistributed. |
-| [PaveBench](https://huggingface.co/datasets/VVQNN/PaveBench) | Dataset card lists 20,124 high-resolution 512 x 512 pavement images for its visual-perception subset; image-level labels, detection boxes, and segmentation masks; and CC BY-NC-SA 4.0. Its visual classes are pothole, three crack types, patch, and negative. It also retains hard distractors such as pavement stains, tree shadows, and road markings. | `Pothole`, `Crack`, `Repaired_road` (from `patch` after visual review), and candidate hard-negative images | Image classification and object-detection supplement | **Downloaded on 2026-09-06; structural preflight passed with warnings.** The downloaded classification and detection tasks contain 20,124 classification images and 11,857 readable detection images with valid COCO alignment. However, 22 exact duplicate groups cross the source detection splits. Do not use its supplied splits as V2 evaluation; rebuild a duplicate-free split later. It has no `Manhole`, `Unpaved_road`, `Shadow`, `Puddle`, `Road_stain`, or `Road_marking` ground-truth class. Do not turn its generic `negative` images into those labels automatically. Its non-commercial, share-alike licence must be retained in project documentation. |
-| [RAD Road Anomaly Detection](https://www.kaggle.com/datasets/rohitsuresh15/radroad-anomaly-detection) | Public Kaggle version 3 lists the MIT licence. The extracted labelled image section contains 8,394 readable 1920 x 1080 images with matching YOLO files. The source classes are HMV, LMV, Pedestrian, RoadDamages, SpeedBump, and UnsurfacedRoad. | No accepted V2 label | Structural-audit reference only | **Rejected for current V2 use on 2026-09-11.** The 60-image review showed a semantic mismatch: `UnsurfacedRoad` boxes can mark dirt shoulders or road edges while the main road remains asphalt. The sample also contains repeated scenes from the same videos. No RAD image is accepted into the V2 inventory. |
-| [Deep Pavements](https://github.com/kauevestena/deep_pavements_dataset) | The repository provides 500 images for each of ten surface-material classes and uses an MIT repository licence. Four relevant folders were preflighted: asphalt, compacted, gravel, and ground. The provider describes the source images as CC-compatible, but no per-image source URL or licence record was found in the extracted relevant files. | No accepted V2 label | Structural-audit reference only | **Rejected for current V2 use on 2026-09-11.** All 2,000 extracted images are readable and no exact duplicates were found, but 1,926 are below 224 pixels on at least one side. Inspected examples are close texture patches rather than complete road scenes, so they cannot prove that the main driving surface is `Unpaved_road` or that an asphalt scene is clean `Normal_asphalt`. |
-| Manually collected or permission-based images | License and consent depend on the individual source; must be recorded per image set. | `Shadow`, `Puddle`, `Road_stain`, plus optional source diversity | All three V2 approaches after manual labeling | **Still required for the three remaining gaps.** These look-alike categories are essential to prevent false pothole alerts. |
-
-## How each model approach will receive data
-
-### 1. Multi-class classification
-
-Each image needs one primary label from the V2 labeling guide. The source annotation alone is not enough: an image with more than one condition must be reviewed and assigned one main label using the documented priority order.
-
-### 2. Multi-label classification
-
-Each image needs nine Yes/No values:
-
-- pothole present
-- crack present
-- repaired patch present
-- unpaved surface present
-- shadow present
-- puddle present
-- manhole present
-- road marking present
-- road stain present
-
-Existing object boxes can help establish some labels, but each image must still be reviewed for the visual look-alikes that source annotations may not include.
-
-### 3. Object detection
-
-The first object-detection pilot should use a source with genuine bounding boxes, such as RDD2022 or SVRDD_YOLO. The pilot must use a separate clean split created after duplicate and source-overlap checks. A source-provided train/validation/test split must not automatically be trusted as leak-free.
-
-## Corrected multi-source V2 plan
-
-No single reviewed source contains the full V2 label guide. The future V2
-dataset must therefore be treated as separate, honest data pools rather than
-one falsely complete dataset.
-
-| Needed V2 condition | Current honest source position |
-| --- | --- |
-| `Pothole` | Available in audited SVRDD. PaveBench may later add high-resolution diversity after its own audit. |
-| `Crack` | Available in audited SVRDD. PaveBench may later add high-resolution diversity after its own audit. |
-| `Repaired_road` | Available in audited SVRDD. PaveBench `patch` may map here after visual and format audit. |
-| `Manhole` | Available in audited SVRDD. PaveBench does not provide it. |
-| `Unpaved_road` | **Open gap.** RAD was rejected because its boxes can mark localized unsurfaced shoulders beside asphalt roads. Deep Pavements was rejected because its compacted, gravel, and ground images are texture patches rather than complete driving scenes. |
-| `Road_marking` | Available in the audited CeyMo training source. After excluding two redundant image copies, 2,097 images and 3,484 marking objects are integrated into the V2 pre-split inventory for multi-label and detection use. Multi-class use still requires cross-condition review. |
-| `Shadow`, `Puddle`, `Road_stain` | **Open gap.** These require explicit source or manual labels. PaveBench negative images are only candidates for manual review, not ground truth for a named look-alike label. |
-| `Normal_asphalt` | **Open gap.** Must be manually reviewed as a complete clear-asphalt road scene. It cannot be inferred from a generic negative label or an asphalt texture patch. |
-
-The V1 Normal data is rejected for this purpose because its 64 x 64 images do
-not have enough detail for a defensible clear-asphalt or look-alike decision.
-See [`V2_V1_NORMAL_VISUAL_REVIEW.md`](V2_V1_NORMAL_VISUAL_REVIEW.md).
-
-## Required source record before download
-
-For every candidate used, record:
-
-| Field | Required record |
-| --- | --- |
-| Source name and URL | Exact public page URL |
-| Owner or publisher | Name shown on the source page |
-| Licence | Exact licence name and link |
-| Download date | Date acquired |
-| Original annotation format | Image-level, YOLO boxes, COCO boxes, or another format |
-| Intended V2 use | Training, validation, candidate pool, or manual review only |
-| Restrictions | Attribution, share-alike, non-commercial, privacy, or other conditions |
-
-## Data rules before modeling
-
-1. Do not evaluate V2 with V1's protected test set.
-2. Do not use pseudo-labels or augmented duplicates in the V2 protected test set.
-3. Do not mix different source licences without documenting the combined-use implications.
-4. Review and remove exact duplicates before splitting.
-5. Split by source, location, route, or recording session where possible.
-6. Ensure each label has enough varied examples before claiming that V2 can recognise it.
-7. Record ambiguous images as `Unclear_exclude`; do not force them into a class.
-
-## Completed PaveBench crack-sample decision
-
-On 2026-09-08, the deterministic crack-only review was finalized: 16 of 36
-sampled images were marked `clear_keep` and 20 were marked
-`unclear_exclude`. Because most reviewed images were not clear enough for the
-proposed use, the PaveBench crack classification folders are **not approved for
-automatic bulk inclusion**. See `docs/V2_PAVEBENCH_VISUAL_REVIEW.md` for the
-per-category evidence and limitations.
-
-## Completed PaveBench look-alike decision
-
-The separate 60-image PaveBench negative sample was reviewed for the missing
-look-alike classes. The reviewer confirmed that none of the sampled images
-clearly represented `Shadow`, `Puddle`, `Road_marking`, `Road_stain`,
-`Normal_asphalt`, or `Unpaved_road`. All 60 reviewed records are excluded and
-zero were accepted. This decision applies to the reviewed sample only; it does
-not turn the remaining generic negative images into named labels.
-
-## RAD acquisition and audit decision
-
-The RAD version 3 archive was downloaded on 2026-09-11. Only the labelled
-image section was extracted; the 5.39 GiB raw-video section was skipped because
-it is not required for the current label review. Structural checks passed for
-all 8,394 images and YOLO label files. The audit also found 20 exact duplicate
-groups crossing the supplier's train, validation, and test folders, so a later
-V2 split must be rebuilt by content and source group.
-
-The deterministic 60-image review found 33 preliminary keep choices, 26
-exclusions, and one pending choice. Those preliminary choices are not accepted
-because the final human review identified a semantic mismatch: many scenes
-retain an asphalt driving surface while a source box marks only an unsurfaced
-shoulder or edge. The sample also contains repeated frames from the same
-recordings. RAD is therefore rejected for the current `Unpaved_road` label.
-See `docs/V2_RAD_VISUAL_REVIEW.md`.
-
-## Deep Pavements preflight decision
-
-Four potentially relevant folders were downloaded and audited on 2026-09-11:
-`asphalt`, `compacted`, `gravel`, and `ground`, with 500 PNG files in each
-folder. All 2,000 files opened successfully, and no exact duplicate group was
-found. However, 1,926 images are below 224 pixels on at least one side, and
-visual inspection showed close-up surface-texture patches rather than complete
-road scenes.
-
-This is a task mismatch, not merely a resolution problem. A gravel or soil
-texture tile does not show that the main drivable road is unpaved, and an
-asphalt texture tile does not show that a complete road scene is free from
-potholes, cracks, shadows, puddles, markings, or stains. The source is rejected
-for the current V2 labels, zero images are accepted, and no manual review
-workbook or model split is created. See
-`docs/V2_DEEP_PAVEMENTS_PREFLIGHT_AUDIT.md`.
-
-## Next approved task
-
-Evaluate another traceable **full road-scene** source for the missing labels,
-beginning with a strict preflight for `Unpaved_road`: the main drivable surface
-must be unpaved, not merely a dirt shoulder beside asphalt and not a close-up
-material texture. Prefer a source with per-image provenance or a clearly
-traceable licence. Sample one image per recording group before allowing
-additional frames. Do not merge sources, build the final split, or train a
-model at this stage.
+The sources above form a pre-split candidate pool only. No V2 train,
+validation, or protected-test split has been created, and no V2 model has been
+trained.
