@@ -74,6 +74,15 @@ steps can trace and compare every candidate.
   because other V2 conditions in each complete scene were not exhaustively
   reviewed.
 
+
+### Mendeley manhole and speed-breaker dataset
+
+- Student approved only the `Good_Manhole` and `Speed_Breaker` folders.
+- Removed within-folder byte-identical duplicates without deleting the raw downloaded source: **663** `Good_Manhole` images and **150** `Speed_Breaker` images remain in the raw selection. Three byte-identical pairs have conflicting folder labels, so all six records are held out in `docs/v2_mendeley_cross_label_duplicate_holdout.csv`.
+- Excluded `Broken_Manhole`, `Uncovered_Manhole`, and `Square_Manhole` at the student's decision.
+- The source has folder-level image labels only. It supports multi-class classification and limited positive-label evidence for multi-label work, but **does not provide boxes** and must not be used for object detection.
+- These are supporting look-alike classes: they help a classifier avoid confusing manhole covers or speed bumps with potholes. They are not the final road-condition outputs.
+
 ## Candidate counts by source
 
 | Source | Candidate image records | Current meaning |
@@ -83,7 +92,8 @@ steps can trace and compare every candidate.
 | GitHub pothole-detection | 1,241 | Student-approved pothole candidates with YOLO boxes |
 | StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes |
 | CeyMo duplicate-safe source-training candidates | 2,097 | Road-marking-positive images with boxes; no automatic primary label |
-| **Total** | **11,683** | Not a final training split |
+| Mendeley manhole and speed-breaker (exact-deduplicated, label-conflict holdout applied) | 807 | 660 manhole-cover and 147 speed-bump image-level supporting candidates; no boxes |
+| **Total** | **12,490** | Not a final training split |
 
 ## Task eligibility
 
