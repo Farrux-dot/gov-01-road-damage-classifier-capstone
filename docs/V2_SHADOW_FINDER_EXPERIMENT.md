@@ -91,3 +91,20 @@ blocks are in `docs/V2_FULL_SHADOW_SOURCE_AUDIT.md`.
 These full datasets remain **audited but not integrated**. They are
 shadow-removal sources rather than automatically road-only sources, so they do
 not change the approved 199-example preparation count or authorize training.
+
+## Approved stopping point for shadow collection
+
+Manual shadow collection is now closed. The **155 manually approved
+StreetSurfaceVis road-shadow images** are the trusted real-road shadow support
+set for V2. They are enough to document and test the lookalike condition
+without asking the student to review hundreds more images.
+
+The **4,004 unique SRD/ISTD source-training records** are kept only in
+`docs/v2_shadow_pretraining_staging_manifest.csv` as optional, generic
+shadow-pattern material. They are not part of the main V2 road-condition
+inventory, are not called road-only images, and are not approved for training
+until provenance/licence and road-context filtering are resolved. The 946
+source-test records remain excluded.
+
+The project now moves to completing the main road-condition classes rather
+than expanding the shadow class further.
