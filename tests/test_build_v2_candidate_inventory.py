@@ -8,6 +8,7 @@ from pathlib import Path
 from src.build_v2_candidate_inventory import (
     build_inventory,
     build_kaggle_speed_bump_candidates,
+    build_mendeley_speed_bump_candidates,
     mark_exact_duplicates,
     summarize,
 )
@@ -236,6 +237,26 @@ def write_kaggle_speed_bump_split_manifest(root: Path) -> Path:
     return manifest
 
 
+def write_mendeley_speed_bump_source(root: Path) -> tuple[Path, Path]:
+    candidate_dir = root / "data/raw/v2/selected/mendeley_manhole_speedbreaker_exact_deduplicated/Speed_Breaker"
+    candidate_dir.mkdir(parents=True, exist_ok=True)
+    safe_image = candidate_dir / "safe.jpg"
+    held_image = candidate_dir / "conflict.jpg"
+    safe_image.write_bytes(b"safe-speed-bump")
+    held_image.write_bytes(b"conflicting-label")
+    holdout = root / "docs/v2_mendeley_cross_label_duplicate_holdout.csv"
+    holdout.parent.mkdir(parents=True, exist_ok=True)
+    fields = ("sha256", "proposed_label")
+    with holdout.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        writer.writeheader()
+        writer.writerow({
+            "sha256": hashlib.sha256(held_image.read_bytes()).hexdigest(),
+            "proposed_label": "speed_bump",
+        })
+    return candidate_dir, holdout
+
+
 class BuildV2CandidateInventoryTests(unittest.TestCase):
     def test_inventory_uses_only_eligible_sources_and_keeps_v1_evaluation_reserved(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -339,6 +360,16 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
         self.assertEqual(len(records), 1)
         self.assertEqual(records[0]["source_record_id"], "train::bump::bump.jpg")
         self.assertEqual(records[0]["original_source_split"], "train")
+
+    def test_mendeley_speed_bump_inventory_holds_cross_label_conflicts(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            candidate_dir, holdout = write_mendeley_speed_bump_source(root)
+            records = build_mendeley_speed_bump_candidates(root, candidate_dir, holdout)
+
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["source_record_id"], "Speed_Breaker::safe.jpg")
+        self.assertEqual(records[0]["proposed_multiclass_label"], "speed_bump")
 
     def test_summary_is_inventory_evidence_not_model_performance(self):
         records = [

@@ -108,7 +108,7 @@ steps can trace and compare every candidate.
 - Excluded `Broken_Manhole`, `Uncovered_Manhole`, and `Square_Manhole` at the student's decision.
 - The source has folder-level image labels only. It supports multi-class classification and limited positive-label evidence for multi-label work, but **does not provide boxes** and must not be used for object detection.
 - These are supporting look-alike classes: they help a classifier avoid confusing manhole covers or speed bumps with potholes. They are not the final road-condition outputs.
-- **Important current boundary:** this older source audit is documented, but its 807 records are not currently read by `src/build_v2_candidate_inventory.py`; therefore they are not counted in the current generated inventory below.
+- **Current integration decision:** only the 147 safe `Speed_Breaker` records enter this inventory. The 660 `Good_Manhole` records remain outside it for now, so the manhole label is not silently expanded without a separate integration decision. All three cross-label speed-bump conflicts remain held out.
 
 ### Kaggle Speed Bump Dataset
 
@@ -117,6 +117,13 @@ steps can trace and compare every candidate.
 - The combined inventory keeps the source-`train` copy where both packages contain the same image. This adds no repeated images and preserves the official test boundary.
 - These are image-level labels only. They support multi-class and multi-label preparation, but cannot support object detection because no boxes are provided.
 - `speed_bump` is a supporting lookalike label, not a final primary road-condition output.
+
+### Mendeley Manhole / Speed-Breaker Dataset
+
+- Student-approved `Speed_Breaker` records add **147** image-level speed-bump candidates.
+- Three records are excluded because each is byte-identical to an image labelled `Good_Manhole`; the conflicting source labels are recorded in `docs/v2_mendeley_cross_label_duplicate_holdout.csv`.
+- Mendeley and Kaggle speed-bump images have no exact SHA-256 overlap.
+- These records have no bounding boxes and therefore cannot support object detection.
 
 ## Candidate counts by source
 
@@ -129,14 +136,15 @@ steps can trace and compare every candidate.
 | CeyMo duplicate-safe source-training candidates | 2,097 | Road-marking-positive images with boxes; no automatic primary label |
 | Hugging Face manhole-cover source training | 1,197 | Image-level manhole-cover candidates; no boxes |
 | Kaggle Speed Bump Dataset | 1,076 | Audited source-train, non-sequence, exact-unique speed-bump candidates; no boxes; source test reserved |
-| **Total** | **13,956** | Not a final training split |
+| Mendeley Speed Breaker | 147 | Student-approved, conflict-safe speed-bump candidates; no boxes |
+| **Total** | **14,103** | Not a final training split |
 
 ## Task eligibility
 
 | Possible task support | Images | Meaning |
 | --- | ---: | --- |
 | Multi-class, multi-label, and object detection | 7,241 | SVRDD and GitHub pothole records have boxes |
-| Multi-class and multi-label only | 2,897 | V1 potholes, Hugging Face manhole covers, and Kaggle speed bumps have no boxes |
+| Multi-class and multi-label only | 3,044 | V1 potholes, Hugging Face manhole covers, and speed bumps have no boxes |
 | Multi-class only | 1,721 | StreetSurfaceVis has surface labels but no boxes or complete multi-label truth |
 | Multi-label and object detection | 2,097 | CeyMo confirms road-marking presence and boxes, but not a complete multi-class scene label |
 
@@ -158,7 +166,7 @@ near-duplicate, imbalance, and split checks still apply.
 | `pothole` | 2,337 |
 | `manhole_cover` | 1,198 |
 | `normal_asphalt` | 791 |
-| `speed_bump` | 1,076 |
+| `speed_bump` | 1,223 |
 | `unpaved_road` | 930 |
 | `road_marking` | 0 |
 
@@ -187,7 +195,7 @@ One image may appear in more than one row of this summary:
 | `manhole_cover` | 2,885 |
 | `pothole` | 2,337 |
 | `road_marking` | 2,097 |
-| `speed_bump` | 1,076 |
+| `speed_bump` | 1,223 |
 | `shadow` | 155 |
 
 These counts show that multi-label classification represents mixed-condition
@@ -210,8 +218,8 @@ not have boxes.
 
 | Check | Result |
 | --- | ---: |
-| Candidate IDs | 13,956 unique |
-| Candidate source paths | 13,956 existing files |
+| Candidate IDs | 14,103 unique |
+| Candidate source paths | 14,103 existing files |
 | Exact SHA-256 duplicate groups | 0 |
 | Records in exact-duplicate groups | 0 |
 | V1 validation or protected-test records included | 0 |

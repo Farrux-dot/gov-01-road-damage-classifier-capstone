@@ -507,6 +507,62 @@ def build_kaggle_speed_bump_candidates(
     return sorted(winners.values(), key=lambda record: str(record["candidate_id"]))
 
 
+def build_mendeley_speed_bump_candidates(
+    repository_root: Path,
+    candidate_dir: Path | None,
+    cross_label_holdout_manifest: Path | None,
+) -> list[dict[str, Any]]:
+    """Create safe Mendeley speed-bump candidates from the approved source folder.
+
+    The holdout manifest records byte-identical images that received conflicting
+    Good_Manhole and Speed_Breaker folder labels. Those files must never enter
+    this inventory until a human resolves the source-label conflict.
+    """
+    if candidate_dir is None and cross_label_holdout_manifest is None:
+        return []
+    if candidate_dir is None or cross_label_holdout_manifest is None:
+        raise ValueError("Mendeley speed-bump directory and holdout manifest must be supplied together")
+    if not candidate_dir.is_dir():
+        raise FileNotFoundError(f"Missing Mendeley speed-bump candidate directory: {candidate_dir}")
+    if not cross_label_holdout_manifest.is_file():
+        raise FileNotFoundError(f"Missing Mendeley cross-label holdout manifest: {cross_label_holdout_manifest}")
+    held_hashes: set[str] = set()
+    with cross_label_holdout_manifest.open(newline="", encoding="utf-8-sig") as file:
+        for row in csv.DictReader(file):
+            if str(row.get("proposed_label", "")).strip() == "speed_bump":
+                held_hashes.add(str(row.get("sha256", "")).strip().lower())
+    records: list[dict[str, Any]] = []
+    for image_path in sorted(path for path in candidate_dir.iterdir() if path.is_file()):
+        actual_sha256 = checked_digest(image_path)
+        if actual_sha256 in held_hashes:
+            continue
+        records.append(
+            {
+                "candidate_id": f"mendeley_speed_bump::{image_path.name}",
+                "source_id": "Mendeley_Manhole_SpeedBreaker",
+                "source_url": "https://data.mendeley.com/datasets/7zzcmv2wz7/1",
+                "license_record": "CC BY 4.0 stated on the source page; recheck before redistribution",
+                "original_source_split": "unsplit_source_collection",
+                "source_record_id": f"Speed_Breaker::{image_path.name}",
+                "source_image_path": repository_relative(image_path, repository_root),
+                "source_annotation_path": repository_relative(cross_label_holdout_manifest, repository_root),
+                "review_sample_id": "",
+                "task_eligibility": "multi_class;multi_label",
+                "boxes_available": "no",
+                "object_count": "",
+                "object_labels": "",
+                "object_label_counts": "",
+                "proposed_multiclass_label": "speed_bump",
+                "proposed_multilabels": "speed_bump",
+                "review_basis": "student-approved Speed_Breaker folder; exact cross-label conflicts held out",
+                "candidate_status": "pre_split_source_labeled_candidate_image_level_only_no_boxes",
+                "sha256": actual_sha256,
+                "exact_duplicate_group_id": "",
+            }
+        )
+    return records
+
+
 def mark_exact_duplicates(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Mark exact duplicate groups without silently deleting any candidate."""
     by_hash: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -605,6 +661,8 @@ def build_inventory(
     hf_manhole_audit_manifest: Path,
     kaggle_speed_bump_audit_manifest: Path | None = None,
     kaggle_speed_bump_split_audit_manifest: Path | None = None,
+    mendeley_speed_bump_candidate_dir: Path | None = None,
+    mendeley_cross_label_holdout_manifest: Path | None = None,
 ) -> list[dict[str, Any]]:
     """Build and validate all currently eligible candidate sources."""
     records = [
@@ -618,6 +676,11 @@ def build_inventory(
             repository_root,
             kaggle_speed_bump_audit_manifest,
             kaggle_speed_bump_split_audit_manifest,
+        ),
+        *build_mendeley_speed_bump_candidates(
+            repository_root,
+            mendeley_speed_bump_candidate_dir,
+            mendeley_cross_label_holdout_manifest,
         ),
     ]
     records = sorted(records, key=lambda record: str(record["candidate_id"]))
@@ -638,6 +701,8 @@ def main() -> None:
     parser.add_argument("--hf-manhole-audit-manifest", type=Path, required=True)
     parser.add_argument("--kaggle-speed-bump-audit-manifest", type=Path, required=True)
     parser.add_argument("--kaggle-speed-bump-split-audit-manifest", type=Path, required=True)
+    parser.add_argument("--mendeley-speed-bump-candidate-dir", type=Path, required=True)
+    parser.add_argument("--mendeley-cross-label-holdout-manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
@@ -653,6 +718,8 @@ def main() -> None:
         args.hf_manhole_audit_manifest,
         args.kaggle_speed_bump_audit_manifest,
         args.kaggle_speed_bump_split_audit_manifest,
+        args.mendeley_speed_bump_candidate_dir,
+        args.mendeley_cross_label_holdout_manifest,
     )
     report = summarize(records)
     write_inventory(records, args.output)
