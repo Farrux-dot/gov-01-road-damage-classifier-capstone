@@ -45,6 +45,7 @@ def build_preflight(repo_root: Path) -> dict[str, object]:
     srd_rows = read_csv(docs / "v2_srd_shadow_approved_manifest.csv")
     istd_rows = read_csv(docs / "v2_istd_shadow_approved_manifest.csv")
     overlay_rows = read_csv(docs / "v2_shadow_multilabel_manifest.csv")
+    no_shadow_rows = read_csv(docs / "v2_no_shadow_manifest.csv")
 
     srd_kept = [row for row in srd_rows if row["human_decision"].lower() == "keep"]
     istd_kept = [row for row in istd_rows if row["review_decision"].lower() == "keep"]
@@ -69,11 +70,30 @@ def build_preflight(repo_root: Path) -> dict[str, object]:
             raise ValueError(f"Invalid shadow overlay decision: {row['candidate_id']}")
         verify_image(resolve_inside_repo(repo_root, candidate["source_image_path"]))
 
+    shadow_ids = {row["candidate_id"] for row in overlay_rows}
+    no_shadow_ids = {row["candidate_id"] for row in no_shadow_rows}
+    overlap = sorted(shadow_ids & no_shadow_ids)
+    if overlap:
+        raise ValueError(f"A candidate cannot be both shadow and no-shadow: {overlap[0]}")
+    for row in no_shadow_rows:
+        candidate = inventory_by_id.get(row["candidate_id"])
+        if candidate is None:
+            raise ValueError(f"No-shadow candidate is missing from inventory: {row['candidate_id']}")
+        if candidate["original_source_split"] != "train":
+            raise ValueError(f"No-shadow candidate is not from the source training split: {row['candidate_id']}")
+        if candidate["proposed_multiclass_label"] != "normal_asphalt":
+            raise ValueError(f"No-shadow candidate is not normal asphalt: {row['candidate_id']}")
+        if row["verified_condition"] != "no_visible_road_shadow" or row["decision"] != "no_shadow_clear":
+            raise ValueError(f"Invalid no-shadow review decision: {row['candidate_id']}")
+        verify_image(resolve_inside_repo(repo_root, candidate["source_image_path"]))
+
     return {
         "srd_approved_images": len(srd_kept),
         "istd_approved_images": len(istd_kept),
         "streetsurfacevis_approved_training_images": len(overlay_rows),
+        "streetsurfacevis_approved_no_shadow_images": len(no_shadow_rows),
         "total_approved_shadow_examples": len(srd_kept) + len(istd_kept) + len(overlay_rows),
+        "shadow_and_no_shadow_sets_do_not_overlap": True,
         "srd_and_istd_have_masks": True,
         "streetsurfacevis_overlay_is_training_only": True,
         "training_status": "blocked",

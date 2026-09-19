@@ -76,6 +76,15 @@ steps can trace and compare every candidate.
 - These images have no object boxes. They support multi-label classification,
   not object detection.
 
+### Clear no-shadow subset from StreetSurfaceVis
+
+- A separate 60-image human review retained **51** `normal_asphalt` source-training
+  images with no visible road shadow. The remaining **9** had a visible shadow,
+  so they are excluded from this no-shadow subset.
+- The 51 retained images are recorded in `docs/v2_no_shadow_manifest.csv` as a
+  reviewed absence condition, `no_visible_road_shadow`. They do not add a new
+  primary class or create duplicate inventory records.
+
 ### CeyMo
 
 - Audited all 2,099 official source-training images and their XML annotations.
@@ -105,7 +114,7 @@ steps can trace and compare every candidate.
 | SVRDD source training split | 6,000 | Mapped pre-split source candidates with boxes |
 | V1 clean training Pothole | 624 | Image-level pothole candidates without boxes |
 | GitHub pothole-detection | 1,241 | Student-approved pothole candidates with YOLO boxes |
-| StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes; 59 approved road-shadow examples are tagged as an extra multi-label condition |
+| StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes; 59 approved road-shadow examples and a separate 51-image clear no-shadow review subset |
 | CeyMo duplicate-safe source-training candidates | 2,097 | Road-marking-positive images with boxes; no automatic primary label |
 | Mendeley manhole and speed-breaker (exact-deduplicated, label-conflict holdout applied) | 807 | 660 manhole-cover and 147 speed-bump image-level supporting candidates; no boxes |
 | **Total** | **12,490** | Not a final training split |
