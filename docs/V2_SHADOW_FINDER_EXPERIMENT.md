@@ -78,3 +78,16 @@ approved images remain existing StreetSurfaceVis source-training records; they
 receive a `shadow` multi-label overlay in
 `docs/v2_shadow_multilabel_manifest.csv` and do not create duplicate image
 records. No final split or V2 model training was created.
+
+## Full source audit
+
+All downloaded SRD and ISTD records were structurally audited on 2026-09-19.
+The audit verified **3,081 SRD** and **1,870 ISTD** original-image, shadow-mask,
+and shadow-free-target triplets. It found one exact duplicate pair in SRD and
+none in ISTD. The complete record-level manifest is
+`docs/v2_full_shadow_source_audit_manifest.csv`; the explanation and remaining
+blocks are in `docs/V2_FULL_SHADOW_SOURCE_AUDIT.md`.
+
+These full datasets remain **audited but not integrated**. They are
+shadow-removal sources rather than automatically road-only sources, so they do
+not change the approved 199-example preparation count or authorize training.

@@ -1,0 +1,39 @@
+{
+  "purpose": "Structural audit only; records are not integrated into the V2 training inventory.",
+  "sources": {
+    "srd": {
+      "records": 3081,
+      "splits": {
+        "test": 406,
+        "train": 2675
+      },
+      "exact_duplicate_groups": 1,
+      "records_in_exact_duplicate_groups": 2,
+      "mask_coverage_range": [
+        0.0,
+        0.901868
+      ]
+    },
+    "istd": {
+      "records": 1870,
+      "splits": {
+        "test": 540,
+        "train": 1330
+      },
+      "exact_duplicate_groups": 0,
+      "records_in_exact_duplicate_groups": 0,
+      "mask_coverage_range": [
+        0.001908,
+        0.945837
+      ]
+    }
+  },
+  "total_records": 4951,
+  "training_status": "blocked",
+  "blockers": [
+    "The downloaded datasets are shadow-removal sources, not automatically road-only datasets.",
+    "Local mirror README licence statements and original-source provenance require confirmation before training use.",
+    "Source test splits remain protected and must not be used for V2 training or tuning.",
+    "Road-context suitability requires a separate filter or human review."
+  ]
+}
