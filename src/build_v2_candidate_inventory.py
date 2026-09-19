@@ -375,6 +375,54 @@ def build_ceymo_candidates(
     return records
 
 
+def build_hf_manhole_candidates(
+    repository_root: Path,
+    audit_manifest: Path,
+) -> list[dict[str, Any]]:
+    """Create image-level manhole-cover candidates from the audited source train split."""
+    if not audit_manifest.is_file():
+        raise FileNotFoundError(f"Missing Hugging Face manhole audit manifest: {audit_manifest}")
+    records: list[dict[str, Any]] = []
+    with audit_manifest.open(newline="", encoding="utf-8-sig") as file:
+        for row_number, row in enumerate(csv.DictReader(file), start=2):
+            if str(row.get("candidate_status", "")).strip() != "source_train_manhole_candidate":
+                continue
+            source_record_id = str(row.get("source_record_id", "")).strip()
+            source_path = str(row.get("relative_image_path", "")).strip().replace("\\\\", "/")
+            expected_sha256 = str(row.get("sha256", "")).strip().lower()
+            if not source_record_id or not source_path or not expected_sha256:
+                raise ValueError(f"Incomplete Hugging Face manhole record on row {row_number}")
+            image_path = repository_root / Path(source_path)
+            actual_sha256 = checked_digest(image_path)
+            if actual_sha256 != expected_sha256:
+                raise ValueError(f"Hugging Face manhole SHA-256 mismatch on row {row_number}: {source_path}")
+            records.append(
+                {
+                    "candidate_id": f"hf_manhole::{source_record_id}",
+                    "source_id": "delima87_manhole_covers_dataset",
+                    "source_url": "https://huggingface.co/datasets/delima87/manhole_covers_dataset",
+                    "license_record": "Apache-2.0 stated on dataset card; recheck before redistribution",
+                    "original_source_split": "train",
+                    "source_record_id": source_record_id,
+                    "source_image_path": repository_relative(image_path, repository_root),
+                    "source_annotation_path": repository_relative(audit_manifest, repository_root),
+                    "review_sample_id": "",
+                    "task_eligibility": "multi_class;multi_label",
+                    "boxes_available": "no",
+                    "object_count": "",
+                    "object_labels": "",
+                    "object_label_counts": "",
+                    "proposed_multiclass_label": "manhole_cover",
+                    "proposed_multilabels": "manhole_cover",
+                    "review_basis": "audited source train folder label manhole; image-level candidate only, no boxes",
+                    "candidate_status": "pre_split_source_labeled_candidate_image_level_only_no_boxes",
+                    "sha256": actual_sha256,
+                    "exact_duplicate_group_id": str(row.get("exact_duplicate_group_id", "")).strip(),
+                }
+            )
+    return records
+
+
 def mark_exact_duplicates(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
     """Mark exact duplicate groups without silently deleting any candidate."""
     by_hash: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -470,6 +518,7 @@ def build_inventory(
     github_pothole_candidate_manifest: Path,
     streetsurfacevis_candidate_manifest: Path,
     ceymo_candidate_manifest: Path,
+    hf_manhole_audit_manifest: Path,
 ) -> list[dict[str, Any]]:
     """Build and validate all currently eligible candidate sources."""
     records = [
@@ -478,6 +527,7 @@ def build_inventory(
         *build_github_pothole_candidates(repository_root, github_pothole_candidate_manifest),
         *build_streetsurfacevis_candidates(repository_root, streetsurfacevis_candidate_manifest),
         *build_ceymo_candidates(repository_root, ceymo_candidate_manifest),
+        *build_hf_manhole_candidates(repository_root, hf_manhole_audit_manifest),
     ]
     records = sorted(records, key=lambda record: str(record["candidate_id"]))
     mark_exact_duplicates(records)
@@ -494,6 +544,7 @@ def main() -> None:
     parser.add_argument("--github-pothole-candidate-manifest", type=Path, required=True)
     parser.add_argument("--streetsurfacevis-candidate-manifest", type=Path, required=True)
     parser.add_argument("--ceymo-candidate-manifest", type=Path, required=True)
+    parser.add_argument("--hf-manhole-audit-manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
@@ -506,6 +557,7 @@ def main() -> None:
         args.github_pothole_candidate_manifest,
         args.streetsurfacevis_candidate_manifest,
         args.ceymo_candidate_manifest,
+        args.hf_manhole_audit_manifest,
     )
     report = summarize(records)
     write_inventory(records, args.output)

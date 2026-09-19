@@ -1,0 +1,20 @@
+{
+  "source_id": "delima87_manhole_covers_dataset",
+  "source_url": "https://huggingface.co/datasets/delima87/manhole_covers_dataset",
+  "source_license": "Apache-2.0 stated on the dataset card; recheck before redistribution",
+  "images_readable": 2726,
+  "counts_by_source_split_and_label": {
+    "test/manhole": 70,
+    "test/void": 70,
+    "train/manhole": 1197,
+    "train/void": 1089,
+    "valid/manhole": 150,
+    "valid/void": 150
+  },
+  "source_train_manhole_candidates": 1197,
+  "held_train_manhole_duplicates": 0,
+  "exact_duplicate_groups": 220,
+  "reserved_not_v2_candidates": 1529,
+  "raw_data_changed": false,
+  "training_status": "not_ready_no_final_v2_split_or_visual_sanity_review"
+}
