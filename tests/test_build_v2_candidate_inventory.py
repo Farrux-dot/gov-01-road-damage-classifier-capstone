@@ -5,7 +5,12 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.build_v2_candidate_inventory import build_inventory, mark_exact_duplicates, summarize
+from src.build_v2_candidate_inventory import (
+    build_inventory,
+    build_kaggle_speed_bump_candidates,
+    mark_exact_duplicates,
+    summarize,
+)
 
 
 def write_svrdd_record(path: Path) -> None:
@@ -185,6 +190,32 @@ def write_hf_manhole_manifest(root: Path) -> Path:
     return manifest
 
 
+def write_kaggle_speed_bump_manifest(root: Path) -> Path:
+    manifest = root / "docs/v2_kaggle_speed_bump_audit_manifest.csv"
+    manifest.parent.mkdir(parents=True, exist_ok=True)
+    image = root / "data/raw/v2/kaggle_speed_bump/Dataset/Data/bump/bump.jpg"
+    image.parent.mkdir(parents=True, exist_ok=True)
+    image_bytes = b"kaggle-speed-bump"
+    image.write_bytes(image_bytes)
+    fields = ("source_record_id", "relative_image_path", "sha256", "decision")
+    with manifest.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        writer.writeheader()
+        writer.writerow({
+            "source_record_id": "bump::bump.jpg",
+            "relative_image_path": "data/raw/v2/kaggle_speed_bump/Dataset/Data/bump/bump.jpg",
+            "sha256": hashlib.sha256(image_bytes).hexdigest(),
+            "decision": "keep_speed_bump_candidate",
+        })
+        writer.writerow({
+            "source_record_id": "bump::MVI_demo 001.jpg",
+            "relative_image_path": "data/raw/v2/kaggle_speed_bump/Dataset/Data/bump/MVI_demo 001.jpg",
+            "sha256": "sequence",
+            "decision": "exclude_sequence_risk",
+        })
+    return manifest
+
+
 class BuildV2CandidateInventoryTests(unittest.TestCase):
     def test_inventory_uses_only_eligible_sources_and_keeps_v1_evaluation_reserved(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -264,6 +295,17 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
         self.assertEqual(records[1]["exact_duplicate_group_id"], "exact_dup_0001")
         self.assertEqual(records[0]["candidate_status"], "hold_exact_duplicate_before_split")
         self.assertEqual(records[2]["exact_duplicate_group_id"], "")
+
+    def test_speed_bump_inventory_keeps_only_audited_non_sequence_candidates(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            records = build_kaggle_speed_bump_candidates(root, write_kaggle_speed_bump_manifest(root))
+
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["source_record_id"], "bump::bump.jpg")
+        self.assertEqual(records[0]["proposed_multiclass_label"], "speed_bump")
+        self.assertEqual(records[0]["proposed_multilabels"], "speed_bump")
+        self.assertEqual(records[0]["boxes_available"], "no")
 
     def test_summary_is_inventory_evidence_not_model_performance(self):
         records = [

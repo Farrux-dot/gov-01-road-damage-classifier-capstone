@@ -1,6 +1,6 @@
 # V2 Source-Traceable Candidate Inventory
 
-**Inventory date:** 2026-09-17
+**Inventory date:** 2026-09-19
 **Stage:** candidate inventory before near-duplicate review, final labelling, and splitting
 **Training status:** not approved
 
@@ -108,6 +108,15 @@ steps can trace and compare every candidate.
 - Excluded `Broken_Manhole`, `Uncovered_Manhole`, and `Square_Manhole` at the student's decision.
 - The source has folder-level image labels only. It supports multi-class classification and limited positive-label evidence for multi-label work, but **does not provide boxes** and must not be used for object detection.
 - These are supporting look-alike classes: they help a classifier avoid confusing manhole covers or speed bumps with potholes. They are not the final road-condition outputs.
+- **Important current boundary:** this older source audit is documented, but its 807 records are not currently read by `src/build_v2_candidate_inventory.py`; therefore they are not counted in the current generated inventory below.
+
+### Kaggle Speed Bump Dataset
+
+- Audited 1,000 readable source images. Only source-labelled `bump` images are in scope for this supporting-lookalike task.
+- Retained **125** non-sequence, exact-unique speed-bump candidates.
+- Excluded 106 `MVI_...` recording-frame images and 19 redundant exact duplicate bump images.
+- These are image-level labels only. They support multi-class and multi-label preparation, but cannot support object detection because no boxes are provided.
+- `speed_bump` is a supporting lookalike label, not a final primary road-condition output.
 
 ## Candidate counts by source
 
@@ -118,15 +127,16 @@ steps can trace and compare every candidate.
 | GitHub pothole-detection | 1,241 | Student-approved pothole candidates with YOLO boxes |
 | StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes; 155 approved road-shadow examples and a separate 51-image clear no-shadow review subset |
 | CeyMo duplicate-safe source-training candidates | 2,097 | Road-marking-positive images with boxes; no automatic primary label |
-| Mendeley manhole and speed-breaker (exact-deduplicated, label-conflict holdout applied) | 807 | 660 manhole-cover and 147 speed-bump image-level supporting candidates; no boxes |
-| **Total** | **12,490** | Not a final training split |
+| Hugging Face manhole-cover source training | 1,197 | Image-level manhole-cover candidates; no boxes |
+| Kaggle Speed Bump Dataset | 125 | Audited non-sequence, exact-unique speed-bump candidates; no boxes |
+| **Total** | **13,005** | Not a final training split |
 
 ## Task eligibility
 
 | Possible task support | Images | Meaning |
 | --- | ---: | --- |
 | Multi-class, multi-label, and object detection | 7,241 | SVRDD and GitHub pothole records have boxes |
-| Multi-class and multi-label only | 624 | V1 pothole records have no boxes |
+| Multi-class and multi-label only | 1,946 | V1 potholes, Hugging Face manhole covers, and Kaggle speed bumps have no boxes |
 | Multi-class only | 1,721 | StreetSurfaceVis has surface labels but no boxes or complete multi-label truth |
 | Multi-label and object detection | 2,097 | CeyMo confirms road-marking presence and boxes, but not a complete multi-class scene label |
 
@@ -146,21 +156,21 @@ near-duplicate, imbalance, and split checks still apply.
 | `crack` | 3,907 |
 | `repaired_road` | 1,620 |
 | `pothole` | 2,337 |
-| `manhole_cover` | 1 |
+| `manhole_cover` | 1,198 |
 | `normal_asphalt` | 791 |
+| `speed_bump` | 125 |
 | `unpaved_road` | 930 |
 | `road_marking` | 0 |
 
-The `manhole_cover` count of one is a serious feasibility warning. It does not
-mean SVRDD contains only one manhole. The provisional one-label priority rule
-selects pothole, crack, or repaired road before manhole when several conditions
-appear in one image. As a result, manholes are hidden from the primary-label
-count.
+The `manhole_cover` count of 1,198 includes 1,197 image-level records from the
+audited Hugging Face source and one SVRDD record chosen by the one-label
+priority rule. SVRDD scenes can still contain a manhole alongside pothole,
+crack, or repaired-road labels, so the existing one-label priority rule does
+not describe every visible condition in those scenes.
 
-**Decision:** do not build the V2 multi-class training split from these primary
-labels yet. A later task must either create single-condition image crops from
-the audited boxes or define another defensible method that gives
-`manhole_cover` enough honest primary examples.
+**Decision:** do not build the V2 multi-class training split yet. A later task
+must define one defensible final label set, source-group split, and class-balance
+plan; the manhole-cover shortage is no longer the sole blocker.
 
 CeyMo adds no row to the current multi-class counts. Its 2,097 accepted images
 prove that a road marking is present, but they have not been exhaustively
@@ -174,9 +184,10 @@ One image may appear in more than one row of this summary:
 | --- | ---: |
 | `crack` | 4,253 |
 | `repaired_road` | 2,077 |
-| `manhole_cover` | 1,688 |
+| `manhole_cover` | 2,885 |
 | `pothole` | 2,337 |
 | `road_marking` | 2,097 |
+| `speed_bump` | 125 |
 | `shadow` | 155 |
 
 These counts show that multi-label classification represents mixed-condition
@@ -199,8 +210,8 @@ not have boxes.
 
 | Check | Result |
 | --- | ---: |
-| Candidate IDs | 11,683 unique |
-| Candidate source paths | 11,683 existing files |
+| Candidate IDs | 13,005 unique |
+| Candidate source paths | 13,005 existing files |
 | Exact SHA-256 duplicate groups | 0 |
 | Records in exact-duplicate groups | 0 |
 | V1 validation or protected-test records included | 0 |
@@ -241,6 +252,7 @@ raw images.
 
 ## Current decision
 
-**All currently accepted sources, including the audited GitHub pothole source
-and duplicate-safe CeyMo road-marking records, are integrated. This is
+**The currently generated inventory includes SVRDD, V1, GitHub pothole,
+StreetSurfaceVis, CeyMo, Hugging Face manhole covers, and audited Kaggle speed
+bumps. This is
 pre-split evidence, not a training dataset. V2 training remains blocked.**
