@@ -1,0 +1,17 @@
+{
+  "source_url": "https://www.kaggle.com/datasets/ziya07/speed-bump-dataset",
+  "source_license": "CC0 / Public Domain stated on the Kaggle dataset page; recheck before redistribution",
+  "images_readable": 1000,
+  "counts_by_source_label": {
+    "bump": 250,
+    "crack": 250,
+    "potholes": 250,
+    "road": 250
+  },
+  "kept_speed_bump_candidates": 125,
+  "excluded_sequence_risk_bump_images": 106,
+  "excluded_exact_duplicate_candidate_images": 19,
+  "exact_duplicate_groups": 20,
+  "raw_data_changed": false,
+  "training_status": "not_ready_no_final_v2_split_or_visual_sanity_review"
+}
