@@ -1,0 +1,17 @@
+{
+  "source_url": "https://www.kaggle.com/datasets/ziya07/speed-bump-dataset",
+  "source_license": "CC0 / Public Domain stated on the Kaggle dataset page; recheck before redistribution",
+  "images_readable": 4259,
+  "readable_by_split": {
+    "test": 1277,
+    "train": 2982
+  },
+  "kept_train_speed_bump_candidates": 1076,
+  "reserved_official_source_test_images": 1277,
+  "excluded_sequence_risk_train_images": 1887,
+  "excluded_exact_duplicate_train_images": 19,
+  "held_cross_split_exact_duplicate_train_images": 0,
+  "exact_duplicate_groups": 81,
+  "raw_data_changed": false,
+  "training_status": "not_ready_no_final_v2_split_or_visual_sanity_review"
+}

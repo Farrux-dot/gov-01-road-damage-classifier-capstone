@@ -112,9 +112,9 @@ steps can trace and compare every candidate.
 
 ### Kaggle Speed Bump Dataset
 
-- Audited 1,000 readable source images. Only source-labelled `bump` images are in scope for this supporting-lookalike task.
-- Retained **125** non-sequence, exact-unique speed-bump candidates.
-- Excluded 106 `MVI_...` recording-frame images and 19 redundant exact duplicate bump images.
+- Audited both local Kaggle packages. The earlier four-label folder supplied 125 non-sequence bump candidates, but all 125 are exact duplicates of records in the complete package.
+- The complete package audit read 4,259 images: it retained **1,076** exact-unique source-`train` speed-bump candidates, reserved all 1,277 official source-`test` images, excluded 1,887 `MVI_...` recording-frame images, and excluded 19 redundant exact duplicates.
+- The combined inventory keeps the source-`train` copy where both packages contain the same image. This adds no repeated images and preserves the official test boundary.
 - These are image-level labels only. They support multi-class and multi-label preparation, but cannot support object detection because no boxes are provided.
 - `speed_bump` is a supporting lookalike label, not a final primary road-condition output.
 
@@ -128,15 +128,15 @@ steps can trace and compare every candidate.
 | StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes; 155 approved road-shadow examples and a separate 51-image clear no-shadow review subset |
 | CeyMo duplicate-safe source-training candidates | 2,097 | Road-marking-positive images with boxes; no automatic primary label |
 | Hugging Face manhole-cover source training | 1,197 | Image-level manhole-cover candidates; no boxes |
-| Kaggle Speed Bump Dataset | 125 | Audited non-sequence, exact-unique speed-bump candidates; no boxes |
-| **Total** | **13,005** | Not a final training split |
+| Kaggle Speed Bump Dataset | 1,076 | Audited source-train, non-sequence, exact-unique speed-bump candidates; no boxes; source test reserved |
+| **Total** | **13,956** | Not a final training split |
 
 ## Task eligibility
 
 | Possible task support | Images | Meaning |
 | --- | ---: | --- |
 | Multi-class, multi-label, and object detection | 7,241 | SVRDD and GitHub pothole records have boxes |
-| Multi-class and multi-label only | 1,946 | V1 potholes, Hugging Face manhole covers, and Kaggle speed bumps have no boxes |
+| Multi-class and multi-label only | 2,897 | V1 potholes, Hugging Face manhole covers, and Kaggle speed bumps have no boxes |
 | Multi-class only | 1,721 | StreetSurfaceVis has surface labels but no boxes or complete multi-label truth |
 | Multi-label and object detection | 2,097 | CeyMo confirms road-marking presence and boxes, but not a complete multi-class scene label |
 
@@ -158,7 +158,7 @@ near-duplicate, imbalance, and split checks still apply.
 | `pothole` | 2,337 |
 | `manhole_cover` | 1,198 |
 | `normal_asphalt` | 791 |
-| `speed_bump` | 125 |
+| `speed_bump` | 1,076 |
 | `unpaved_road` | 930 |
 | `road_marking` | 0 |
 
@@ -187,7 +187,7 @@ One image may appear in more than one row of this summary:
 | `manhole_cover` | 2,885 |
 | `pothole` | 2,337 |
 | `road_marking` | 2,097 |
-| `speed_bump` | 125 |
+| `speed_bump` | 1,076 |
 | `shadow` | 155 |
 
 These counts show that multi-label classification represents mixed-condition
@@ -210,8 +210,8 @@ not have boxes.
 
 | Check | Result |
 | --- | ---: |
-| Candidate IDs | 13,005 unique |
-| Candidate source paths | 13,005 existing files |
+| Candidate IDs | 13,956 unique |
+| Candidate source paths | 13,956 existing files |
 | Exact SHA-256 duplicate groups | 0 |
 | Records in exact-duplicate groups | 0 |
 | V1 validation or protected-test records included | 0 |

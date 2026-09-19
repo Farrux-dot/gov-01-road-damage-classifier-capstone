@@ -426,51 +426,85 @@ def build_hf_manhole_candidates(
 def build_kaggle_speed_bump_candidates(
     repository_root: Path,
     audit_manifest: Path | None,
+    split_audit_manifest: Path | None = None,
 ) -> list[dict[str, Any]]:
-    """Create image-level speed-bump lookalike candidates from the audited Kaggle source."""
-    if audit_manifest is None:
+    """Create deduplicated speed-bump candidates from audited Kaggle packages.
+
+    The supplied train/test package is preferred when an image also appears in
+    the earlier unsplit package.  This retains the cleaner source-split
+    provenance while keeping official source-test images out of the inventory.
+    """
+    if audit_manifest is None and split_audit_manifest is None:
         return []
-    if not audit_manifest.is_file():
-        raise FileNotFoundError(f"Missing Kaggle speed-bump audit manifest: {audit_manifest}")
-    records: list[dict[str, Any]] = []
-    with audit_manifest.open(newline="", encoding="utf-8-sig") as file:
-        for row_number, row in enumerate(csv.DictReader(file), start=2):
-            if str(row.get("decision", "")).strip() != "keep_speed_bump_candidate":
-                continue
-            source_record_id = str(row.get("source_record_id", "")).strip()
-            source_path = str(row.get("relative_image_path", "")).strip().replace("\\\\", "/")
-            expected_sha256 = str(row.get("sha256", "")).strip().lower()
-            if not source_record_id or not source_path or not expected_sha256:
-                raise ValueError(f"Incomplete Kaggle speed-bump record on row {row_number}")
-            image_path = repository_root / Path(source_path)
-            actual_sha256 = checked_digest(image_path)
-            if actual_sha256 != expected_sha256:
-                raise ValueError(f"Kaggle speed-bump SHA-256 mismatch on row {row_number}: {source_path}")
-            records.append(
-                {
-                    "candidate_id": f"kaggle_speed_bump::{source_record_id}",
-                    "source_id": "Kaggle_speed_bump_dataset",
-                    "source_url": "https://www.kaggle.com/datasets/ziya07/speed-bump-dataset",
-                    "license_record": "CC0 / Public Domain stated on the Kaggle dataset page; recheck before redistribution",
-                    "original_source_split": "unsplit_source_collection",
-                    "source_record_id": source_record_id,
-                    "source_image_path": repository_relative(image_path, repository_root),
-                    "source_annotation_path": repository_relative(audit_manifest, repository_root),
-                    "review_sample_id": "",
-                    "task_eligibility": "multi_class;multi_label",
-                    "boxes_available": "no",
-                    "object_count": "",
-                    "object_labels": "",
-                    "object_label_counts": "",
-                    "proposed_multiclass_label": "speed_bump",
-                    "proposed_multilabels": "speed_bump",
-                    "review_basis": "audited source bump label; MVI sequence frames and redundant exact duplicates excluded",
-                    "candidate_status": "pre_split_source_labeled_candidate_image_level_only_no_boxes",
-                    "sha256": actual_sha256,
-                    "exact_duplicate_group_id": "",
-                }
-            )
-    return records
+    candidates: list[tuple[int, dict[str, Any]]] = []
+
+    def read_manifest(
+        manifest: Path | None,
+        keep_decision: str,
+        source_split: str,
+        priority: int,
+        review_basis: str,
+    ) -> None:
+        if manifest is None:
+            return
+        if not manifest.is_file():
+            raise FileNotFoundError(f"Missing Kaggle speed-bump audit manifest: {manifest}")
+        with manifest.open(newline="", encoding="utf-8-sig") as file:
+            for row_number, row in enumerate(csv.DictReader(file), start=2):
+                if str(row.get("decision", "")).strip() != keep_decision:
+                    continue
+                source_record_id = str(row.get("source_record_id", "")).strip()
+                source_path = str(row.get("relative_image_path", "")).strip().replace("\\\\", "/")
+                expected_sha256 = str(row.get("sha256", "")).strip().lower()
+                if not source_record_id or not source_path or not expected_sha256:
+                    raise ValueError(f"Incomplete Kaggle speed-bump record on row {row_number}: {manifest}")
+                image_path = repository_root / Path(source_path)
+                actual_sha256 = checked_digest(image_path)
+                if actual_sha256 != expected_sha256:
+                    raise ValueError(f"Kaggle speed-bump SHA-256 mismatch on row {row_number}: {source_path}")
+                candidates.append(
+                    (priority, {
+                        "candidate_id": f"kaggle_speed_bump::{source_record_id}",
+                        "source_id": "Kaggle_speed_bump_dataset",
+                        "source_url": "https://www.kaggle.com/datasets/ziya07/speed-bump-dataset",
+                        "license_record": "CC0 / Public Domain stated on the Kaggle dataset page; recheck before redistribution",
+                        "original_source_split": source_split,
+                        "source_record_id": source_record_id,
+                        "source_image_path": repository_relative(image_path, repository_root),
+                        "source_annotation_path": repository_relative(manifest, repository_root),
+                        "review_sample_id": "",
+                        "task_eligibility": "multi_class;multi_label",
+                        "boxes_available": "no",
+                        "object_count": "",
+                        "object_labels": "",
+                        "object_label_counts": "",
+                        "proposed_multiclass_label": "speed_bump",
+                        "proposed_multilabels": "speed_bump",
+                        "review_basis": review_basis,
+                        "candidate_status": "pre_split_source_labeled_candidate_image_level_only_no_boxes",
+                        "sha256": actual_sha256,
+                        "exact_duplicate_group_id": "",
+                    })
+                )
+
+    read_manifest(
+        audit_manifest,
+        "keep_speed_bump_candidate",
+        "unsplit_source_collection",
+        1,
+        "audited source bump label; MVI sequence frames and redundant exact duplicates excluded",
+    )
+    read_manifest(
+        split_audit_manifest,
+        "keep_train_speed_bump_candidate",
+        "train",
+        0,
+        "audited source-train bump label; source test reserved; MVI frames and redundant exact duplicates excluded",
+    )
+    winners: dict[str, dict[str, Any]] = {}
+    for _, record in sorted(candidates, key=lambda item: (item[0], str(item[1]["candidate_id"]))):
+        winners.setdefault(str(record["sha256"]), record)
+    return sorted(winners.values(), key=lambda record: str(record["candidate_id"]))
 
 
 def mark_exact_duplicates(records: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -570,6 +604,7 @@ def build_inventory(
     ceymo_candidate_manifest: Path,
     hf_manhole_audit_manifest: Path,
     kaggle_speed_bump_audit_manifest: Path | None = None,
+    kaggle_speed_bump_split_audit_manifest: Path | None = None,
 ) -> list[dict[str, Any]]:
     """Build and validate all currently eligible candidate sources."""
     records = [
@@ -579,7 +614,11 @@ def build_inventory(
         *build_streetsurfacevis_candidates(repository_root, streetsurfacevis_candidate_manifest),
         *build_ceymo_candidates(repository_root, ceymo_candidate_manifest),
         *build_hf_manhole_candidates(repository_root, hf_manhole_audit_manifest),
-        *build_kaggle_speed_bump_candidates(repository_root, kaggle_speed_bump_audit_manifest),
+        *build_kaggle_speed_bump_candidates(
+            repository_root,
+            kaggle_speed_bump_audit_manifest,
+            kaggle_speed_bump_split_audit_manifest,
+        ),
     ]
     records = sorted(records, key=lambda record: str(record["candidate_id"]))
     mark_exact_duplicates(records)
@@ -598,6 +637,7 @@ def main() -> None:
     parser.add_argument("--ceymo-candidate-manifest", type=Path, required=True)
     parser.add_argument("--hf-manhole-audit-manifest", type=Path, required=True)
     parser.add_argument("--kaggle-speed-bump-audit-manifest", type=Path, required=True)
+    parser.add_argument("--kaggle-speed-bump-split-audit-manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     args = parser.parse_args()
@@ -612,6 +652,7 @@ def main() -> None:
         args.ceymo_candidate_manifest,
         args.hf_manhole_audit_manifest,
         args.kaggle_speed_bump_audit_manifest,
+        args.kaggle_speed_bump_split_audit_manifest,
     )
     report = summarize(records)
     write_inventory(records, args.output)

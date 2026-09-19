@@ -216,6 +216,26 @@ def write_kaggle_speed_bump_manifest(root: Path) -> Path:
     return manifest
 
 
+def write_kaggle_speed_bump_split_manifest(root: Path) -> Path:
+    manifest = root / "docs/v2_kaggle_speed_bump_split_audit_manifest.csv"
+    image = root / "data/raw/v2/kaggle_speed_bump/Speed_Bump/bump_detection_dataset/train/bump/bump.jpg"
+    image.parent.mkdir(parents=True, exist_ok=True)
+    image_bytes = b"kaggle-speed-bump"
+    image.write_bytes(image_bytes)
+    fields = ("source_record_id", "source_split", "relative_image_path", "sha256", "decision")
+    with manifest.open("w", newline="", encoding="utf-8") as file:
+        writer = csv.DictWriter(file, fieldnames=fields)
+        writer.writeheader()
+        writer.writerow({
+            "source_record_id": "train::bump::bump.jpg",
+            "source_split": "train",
+            "relative_image_path": "data/raw/v2/kaggle_speed_bump/Speed_Bump/bump_detection_dataset/train/bump/bump.jpg",
+            "sha256": hashlib.sha256(image_bytes).hexdigest(),
+            "decision": "keep_train_speed_bump_candidate",
+        })
+    return manifest
+
+
 class BuildV2CandidateInventoryTests(unittest.TestCase):
     def test_inventory_uses_only_eligible_sources_and_keeps_v1_evaluation_reserved(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
@@ -306,6 +326,19 @@ class BuildV2CandidateInventoryTests(unittest.TestCase):
         self.assertEqual(records[0]["proposed_multiclass_label"], "speed_bump")
         self.assertEqual(records[0]["proposed_multilabels"], "speed_bump")
         self.assertEqual(records[0]["boxes_available"], "no")
+
+    def test_speed_bump_inventory_prefers_train_package_for_exact_duplicate(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            records = build_kaggle_speed_bump_candidates(
+                root,
+                write_kaggle_speed_bump_manifest(root),
+                write_kaggle_speed_bump_split_manifest(root),
+            )
+
+        self.assertEqual(len(records), 1)
+        self.assertEqual(records[0]["source_record_id"], "train::bump::bump.jpg")
+        self.assertEqual(records[0]["original_source_split"], "train")
 
     def test_summary_is_inventory_evidence_not_model_performance(self):
         records = [
