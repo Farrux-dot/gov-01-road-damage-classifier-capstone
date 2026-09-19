@@ -12,9 +12,9 @@ is **not** the final GOV-01 model and it must not replace V1.
 | --- | ---: | --- | --- |
 | SRD road-shadow sample | 24 | Each image has a shadow mask | Experimental shadow-pattern evidence only |
 | ISTD shadow sample | 20 | Each image has a shadow mask | Experimental shadow-pattern evidence only; research/non-commercial condition recorded |
-| StreetSurfaceVis | 59 | Real-road images, manually approved; no masks | Road-context confirmation and later candidate-mining check |
+| StreetSurfaceVis | 155 | Real-road images, manually approved; no masks | Road-context confirmation and later candidate-mining check |
 | StreetSurfaceVis clear no-shadow review | 51 | Real-road images, manually approved; no masks | Small trusted no-shadow comparison set |
-| **Shadow-positive total** | **103** | Not a final training split | Preparation only |
+| **Shadow-positive total** | **199** | Not a final training split | Preparation only |
 
 Seven other approved StreetSurfaceVis shadow images are intentionally absent:
 they belong to the source's official non-training split and remain protected.
@@ -23,7 +23,7 @@ they belong to the source's official non-training split and remain protected.
 
 For every approved StreetSurfaceVis image:
 
-- main road label: `normal_asphalt`
+- main road label: `normal_asphalt` or `unpaved_road`
 - extra condition: `shadow`
 
 This means “normal asphalt with a shadow,” not “pothole.” The `shadow` label
@@ -45,10 +45,10 @@ Run this from the repository root:
 .\.venv\Scripts\python.exe src\preflight_shadow_finder.py
 ```
 
-The check confirms files and masks are readable, confirms all 59 road-shadow
-overlays and all 51 clear no-shadow records refer to existing
-`normal_asphalt` source-training candidates, confirms the two sets do not
-overlap, and reports the current blocker.
+The check confirms files and masks are readable, confirms all 155 road-shadow
+overlays and all 51 clear no-shadow records refer to existing eligible
+source-training road candidates, confirms the two sets do not overlap, and
+reports the current blocker.
 
 ## Boundary before any model experiment
 
@@ -69,3 +69,12 @@ not learn from SRD/ISTD, create training labels, or change the final inventory.
 
 A dark area may be a shadow, dark asphalt, a puddle, a stain, or camera
 exposure. Each new candidate therefore remains `pending` until human review.
+
+## Completed heuristic-candidate review
+
+The completed 120-image human review retained **96** images with a visible
+road shadow and excluded **24** images where no road shadow was visible. The
+approved images remain existing StreetSurfaceVis source-training records; they
+receive a `shadow` multi-label overlay in
+`docs/v2_shadow_multilabel_manifest.csv` and do not create duplicate image
+records. No final split or V2 model training was created.

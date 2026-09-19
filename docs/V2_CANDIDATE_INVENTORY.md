@@ -63,13 +63,15 @@ steps can trace and compare every candidate.
 
 ### Approved road-shadow subset from StreetSurfaceVis
 
-- The student-approved review retained **66** road images where a shadow is
+- The student-approved initial review retained **66** road images where a shadow is
   visibly present. Seven are from the official non-training split and remain
   excluded to protect later evaluation.
 - **59** of these images already exist in the inventory as `normal_asphalt`
   records. They are kept once and receive the additional multi-label tag
   `shadow`; no duplicate image record is created.
-- Therefore **59** eligible training candidates receive the shadow tag.
+- A later 120-image review-only shortlist retained **96** additional
+  source-training examples and excluded **24** no-shadow examples.
+- Therefore **155** eligible training candidates receive the shadow tag.
 - `shadow` is an extra multi-label condition, not a new primary multi-class
   road-condition output. It helps later work teach the model not to confuse a
   road shadow with pothole damage.
@@ -114,7 +116,7 @@ steps can trace and compare every candidate.
 | SVRDD source training split | 6,000 | Mapped pre-split source candidates with boxes |
 | V1 clean training Pothole | 624 | Image-level pothole candidates without boxes |
 | GitHub pothole-detection | 1,241 | Student-approved pothole candidates with YOLO boxes |
-| StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes; 59 approved road-shadow examples and a separate 51-image clear no-shadow review subset |
+| StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes; 155 approved road-shadow examples and a separate 51-image clear no-shadow review subset |
 | CeyMo duplicate-safe source-training candidates | 2,097 | Road-marking-positive images with boxes; no automatic primary label |
 | Mendeley manhole and speed-breaker (exact-deduplicated, label-conflict holdout applied) | 807 | 660 manhole-cover and 147 speed-bump image-level supporting candidates; no boxes |
 | **Total** | **12,490** | Not a final training split |
@@ -128,9 +130,9 @@ steps can trace and compare every candidate.
 | Multi-class only | 1,721 | StreetSurfaceVis has surface labels but no boxes or complete multi-label truth |
 | Multi-label and object detection | 2,097 | CeyMo confirms road-marking presence and boxes, but not a complete multi-class scene label |
 
-The approved 59-image StreetSurfaceVis shadow subset is an explicit exception:
-those existing `normal_asphalt` candidates also support the limited multi-label
-pair `normal_asphalt;shadow`. The separate
+The approved 155-image StreetSurfaceVis shadow subset is an explicit exception:
+those existing eligible road-surface candidates also support the limited
+multi-label pair `normal_asphalt;shadow` or `unpaved_road;shadow`. The separate
 `docs/v2_shadow_multilabel_manifest.csv` records that overlay; it does not
 duplicate images or claim complete multi-label truth for every condition.
 
@@ -175,7 +177,7 @@ One image may appear in more than one row of this summary:
 | `manhole_cover` | 1,688 |
 | `pothole` | 2,337 |
 | `road_marking` | 2,097 |
-| `shadow` | 59 |
+| `shadow` | 155 |
 
 These counts show that multi-label classification represents mixed-condition
 images more honestly than the current single-label priority rule.

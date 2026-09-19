@@ -64,8 +64,8 @@ def build_preflight(repo_root: Path) -> dict[str, object]:
             raise ValueError(f"Overlay candidate is missing from inventory: {row['candidate_id']}")
         if candidate["original_source_split"] != "train":
             raise ValueError(f"Overlay candidate is not from the source training split: {row['candidate_id']}")
-        if candidate["proposed_multiclass_label"] != "normal_asphalt":
-            raise ValueError(f"Overlay candidate is not normal asphalt: {row['candidate_id']}")
+        if candidate["proposed_multiclass_label"] not in {"normal_asphalt", "unpaved_road"}:
+            raise ValueError(f"Overlay candidate is not an eligible road surface: {row['candidate_id']}")
         if row["added_multilabel"] != "shadow" or row["decision"] != "approved":
             raise ValueError(f"Invalid shadow overlay decision: {row['candidate_id']}")
         verify_image(resolve_inside_repo(repo_root, candidate["source_image_path"]))

@@ -74,8 +74,8 @@ def shared_strings(archive: zipfile.ZipFile) -> list[str]:
     return values
 
 
-def workbook_rows(workbook_path: Path) -> list[dict[str, str]]:
-    """Return review rows from the known first worksheet without Excel packages."""
+def workbook_rows(workbook_path: Path, review_id_prefix: str = "NS-") -> list[dict[str, str]]:
+    """Return prefixed review rows from the known first worksheet without Excel packages."""
     with zipfile.ZipFile(workbook_path) as archive:
         strings = shared_strings(archive)
         root = ElementTree.fromstring(archive.read("xl/worksheets/sheet1.xml"))
@@ -94,7 +94,7 @@ def workbook_rows(workbook_path: Path) -> list[dict[str, str]]:
                 values[letter] = strings[int(value)]
             else:
                 values[letter] = value
-        if values.get("A", "").startswith("NS-"):
+        if values.get("A", "").startswith(review_id_prefix):
             rows.append(values)
     return rows
 
