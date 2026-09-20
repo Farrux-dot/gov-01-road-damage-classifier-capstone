@@ -53,16 +53,34 @@ They may later support a separate multi-label or detection experiment only.
 - Stored SHA-256 checks find byte-identical files. They do not prove that
   visually similar photographs are different.
 
-## Proposed safe split method — not executed yet
+## Generated safe split manifest — not materialized
 
-When the V2 multi-class experiment is explicitly approved, construct one
-deterministic split from the 12,768 multi-class candidates:
+The deterministic split manifest was generated from the 12,768 eligible
+multi-class candidates using seed `42`. It exists only as metadata in
+`docs/v2_multiclass_split_manifest.csv`; no images were copied and no model was
+trained.
 
 | Split | Proposed share | Purpose |
 | --- | ---: | --- |
-| Training | 70% | Learn model parameters and use augmentation only here |
-| Validation | 15% | Compare model approaches and choose settings |
-| Protected test | 15% | One final evaluation after model selection |
+| Training | 8,936 (70.0%) | Learn model parameters and use augmentation only here |
+| Validation | 1,916 (15.0%) | Compare model approaches and choose settings |
+| Protected test | 1,916 (15.0%) | One final evaluation after model selection |
+
+| Primary label | Training | Validation | Protected test |
+| --- | ---: | ---: | ---: |
+| `crack` | 2,735 | 586 | 586 |
+| `manhole_cover` | 838 | 180 | 180 |
+| `normal_asphalt` | 972 | 209 | 209 |
+| `pothole` | 1,635 | 351 | 351 |
+| `repaired_road` | 1,134 | 243 | 243 |
+| `speed_bump` | 857 | 183 | 183 |
+| `unpaved_road` | 765 | 164 | 164 |
+
+The generator checks that every candidate appears once and that each original
+source-image group stays entirely in one split. The generated manifest has
+12,768 unique candidate IDs and 12,768 split groups; zero groups cross a split
+boundary. Its machine-readable summary is
+`reports/v2_multiclass_split_report.json`.
 
 Before assigning a split, the split builder must:
 
@@ -86,10 +104,11 @@ The test split must stay untouched while models are trained and tuned. It is
 not a source for augmentation, class balancing, threshold selection, or model
 comparison.
 
-## Next small approved task
+## Remaining blocker before materializing files
 
-Create a deterministic, source-aware V2 **split manifest generator** and its
-automated checks. It should only write a CSV manifest first; it must not copy
-images or train a model. The checks must prove that every candidate is assigned
-once, labels are represented where possible, and no exact duplicate or source
-image group crosses split boundaries.
+Run a near-duplicate audit against the generated split manifest. Exact
+byte-identical duplicates are already excluded, but visually similar images
+can still make an evaluation unrealistically easy if they land in different
+splits. Only after this check and explicit approval may a later task
+materialize train/validation/protected-test image folders. No V2 model may be
+trained before then.
