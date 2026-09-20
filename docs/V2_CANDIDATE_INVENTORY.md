@@ -1,6 +1,6 @@
 # V2 Source-Traceable Candidate Inventory
 
-**Inventory date:** 2026-09-19
+**Inventory date:** 2026-09-20
 **Stage:** candidate inventory before near-duplicate review, final labelling, and splitting
 **Training status:** not approved
 
@@ -60,6 +60,22 @@ steps can trace and compare every candidate.
   protection.
 - These records support multi-class classification only. They do not provide
   complete nine-output multi-label truth or object boxes.
+
+### Zenodo Normal-Pothole Dataset (Normal folder only)
+
+- The student manually removed images that were not suitable examples of
+  normal asphalt from the source `Normal` folder.
+- Audited the remaining 613 images: 14 visually identical duplicate copies
+  were permanently removed, leaving **599** exact-unique normal-asphalt
+  candidates. Three merely similar image pairs remain because similarity alone
+  is not evidence of duplication.
+- The source `Pothole` folder is intentionally **not** integrated in this
+  decision. It remains a separate reserve source for a future pothole-diversity
+  review.
+- The retained images have folder-level labels only and no boxes. They support
+  multi-class classification only.
+- The Zenodo record does not state a licence. These files must not be
+  redistributed unless the licence is clarified.
 
 ### Approved road-shadow subset from StreetSurfaceVis
 
@@ -133,11 +149,12 @@ steps can trace and compare every candidate.
 | V1 clean training Pothole | 624 | Image-level pothole candidates without boxes |
 | GitHub pothole-detection | 1,241 | Student-approved pothole candidates with YOLO boxes |
 | StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes; 155 approved road-shadow examples and a separate 51-image clear no-shadow review subset |
+| Zenodo Normal-Pothole Dataset (Normal only) | 599 | Student-filtered, duplicate-safe normal-asphalt candidates without boxes; unsplit source |
 | CeyMo duplicate-safe source-training candidates | 2,097 | Road-marking-positive images with boxes; no automatic primary label |
 | Hugging Face manhole-cover source training | 1,197 | Image-level manhole-cover candidates; no boxes |
 | Kaggle Speed Bump Dataset | 1,076 | Audited source-train, non-sequence, exact-unique speed-bump candidates; no boxes; source test reserved |
 | Mendeley Speed Breaker | 147 | Student-approved, conflict-safe speed-bump candidates; no boxes |
-| **Total** | **14,103** | Not a final training split |
+| **Total** | **14,702** | Not a final training split |
 
 ## Task eligibility
 
@@ -145,7 +162,7 @@ steps can trace and compare every candidate.
 | --- | ---: | --- |
 | Multi-class, multi-label, and object detection | 7,241 | SVRDD and GitHub pothole records have boxes |
 | Multi-class and multi-label only | 3,044 | V1 potholes, Hugging Face manhole covers, and speed bumps have no boxes |
-| Multi-class only | 1,721 | StreetSurfaceVis has surface labels but no boxes or complete multi-label truth |
+| Multi-class only | 2,320 | StreetSurfaceVis and Zenodo normal-asphalt images have image-level surface labels but no boxes or complete multi-label truth |
 | Multi-label and object detection | 2,097 | CeyMo confirms road-marking presence and boxes, but not a complete multi-class scene label |
 
 The approved 155-image StreetSurfaceVis shadow subset is an explicit exception:
@@ -165,7 +182,7 @@ near-duplicate, imbalance, and split checks still apply.
 | `repaired_road` | 1,620 |
 | `pothole` | 2,337 |
 | `manhole_cover` | 1,198 |
-| `normal_asphalt` | 791 |
+| `normal_asphalt` | 1,390 |
 | `speed_bump` | 1,223 |
 | `unpaved_road` | 930 |
 | `road_marking` | 0 |
@@ -218,8 +235,8 @@ not have boxes.
 
 | Check | Result |
 | --- | ---: |
-| Candidate IDs | 14,103 unique |
-| Candidate source paths | 14,103 existing files |
+| Candidate IDs | 14,702 unique |
+| Candidate source paths | 14,702 existing files |
 | Exact SHA-256 duplicate groups | 0 |
 | Records in exact-duplicate groups | 0 |
 | V1 validation or protected-test records included | 0 |
@@ -239,6 +256,8 @@ final split.
   recheck before redistributing any files.
 - StreetSurfaceVis: CC-BY-SA is stated on the official Zenodo record; recheck
   before redistribution.
+- Zenodo Normal-Pothole Dataset: no licence is stated on the record; do not
+  redistribute its images unless that permission is clarified.
 - CeyMo: the official repository contains an MIT licence; confirm that it
   covers dataset-file redistribution before redistributing images.
 
@@ -261,6 +280,6 @@ raw images.
 ## Current decision
 
 **The currently generated inventory includes SVRDD, V1, GitHub pothole,
-StreetSurfaceVis, CeyMo, Hugging Face manhole covers, and audited Kaggle speed
-bumps. This is
+StreetSurfaceVis, Zenodo normal-asphalt, CeyMo, Hugging Face manhole covers,
+and audited Kaggle speed bumps. This is
 pre-split evidence, not a training dataset. V2 training remains blocked.**
