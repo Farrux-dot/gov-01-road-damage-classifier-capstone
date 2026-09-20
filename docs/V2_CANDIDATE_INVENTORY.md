@@ -77,6 +77,21 @@ steps can trace and compare every candidate.
 - The Zenodo record does not state a licence. These files must not be
   redistributed unless the licence is clarified.
 
+### Road Quality Dataset (RQD) — unpaved-road class
+
+- The RQD training archive contains six source classes. Only source class `5`
+  was considered because its documented meaning includes unpaved road surfaces.
+- The student removed **19** unsuitable class-5 images (for example,
+  cobblestone or scenes that were not a usable unpaved road), leaving **163**
+  `unpaved_road` candidates.
+- The remaining files passed the post-filter audit: zero unreadable files,
+  zero exact duplicates, and zero SHA-256 overlaps with the prior inventory.
+- These images have image-level source-folder labels and no boxes. They support
+  multi-class classification only. The source test archive was not downloaded
+  or used.
+- No licence is stated in the source repository; the images must not be
+  redistributed unless permission is clarified.
+
 ### Approved road-shadow subset from StreetSurfaceVis
 
 - The student-approved initial review retained **66** road images where a shadow is
@@ -150,11 +165,12 @@ steps can trace and compare every candidate.
 | GitHub pothole-detection | 1,241 | Student-approved pothole candidates with YOLO boxes |
 | StreetSurfaceVis source-training candidates | 1,721 | Sample-supported normal-asphalt and unpaved-road candidates without boxes; 155 approved road-shadow examples and a separate 51-image clear no-shadow review subset |
 | Zenodo Normal-Pothole Dataset (Normal only) | 599 | Student-filtered, duplicate-safe normal-asphalt candidates without boxes; unsplit source |
+| Road Quality Dataset (RQD) class 5 | 163 | Student-filtered, duplicate-safe unpaved-road candidates without boxes; original source training archive only |
 | CeyMo duplicate-safe source-training candidates | 2,097 | Road-marking-positive images with boxes; no automatic primary label |
 | Hugging Face manhole-cover source training | 1,197 | Image-level manhole-cover candidates; no boxes |
 | Kaggle Speed Bump Dataset | 1,076 | Audited source-train, non-sequence, exact-unique speed-bump candidates; no boxes; source test reserved |
 | Mendeley Speed Breaker | 147 | Student-approved, conflict-safe speed-bump candidates; no boxes |
-| **Total** | **14,702** | Not a final training split |
+| **Total** | **14,865** | Not a final training split |
 
 ## Task eligibility
 
@@ -162,7 +178,7 @@ steps can trace and compare every candidate.
 | --- | ---: | --- |
 | Multi-class, multi-label, and object detection | 7,241 | SVRDD and GitHub pothole records have boxes |
 | Multi-class and multi-label only | 3,044 | V1 potholes, Hugging Face manhole covers, and speed bumps have no boxes |
-| Multi-class only | 2,320 | StreetSurfaceVis and Zenodo normal-asphalt images have image-level surface labels but no boxes or complete multi-label truth |
+| Multi-class only | 2,483 | StreetSurfaceVis, Zenodo normal-asphalt, and student-filtered RQD unpaved-road images have image-level surface labels but no boxes or complete multi-label truth |
 | Multi-label and object detection | 2,097 | CeyMo confirms road-marking presence and boxes, but not a complete multi-class scene label |
 
 The approved 155-image StreetSurfaceVis shadow subset is an explicit exception:
@@ -184,7 +200,7 @@ near-duplicate, imbalance, and split checks still apply.
 | `manhole_cover` | 1,198 |
 | `normal_asphalt` | 1,390 |
 | `speed_bump` | 1,223 |
-| `unpaved_road` | 930 |
+| `unpaved_road` | 1,093 |
 | `road_marking` | 0 |
 
 The `manhole_cover` count of 1,198 includes 1,197 image-level records from the
@@ -235,8 +251,8 @@ not have boxes.
 
 | Check | Result |
 | --- | ---: |
-| Candidate IDs | 14,702 unique |
-| Candidate source paths | 14,702 existing files |
+| Candidate IDs | 14,865 unique |
+| Candidate source paths | 14,865 existing files |
 | Exact SHA-256 duplicate groups | 0 |
 | Records in exact-duplicate groups | 0 |
 | V1 validation or protected-test records included | 0 |
