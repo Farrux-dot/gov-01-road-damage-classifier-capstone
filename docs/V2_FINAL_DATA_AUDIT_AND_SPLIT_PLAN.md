@@ -115,12 +115,12 @@ delete, relabel, move, or copy any images.
 | Check | Result |
 | --- | ---: |
 | Manifest images scanned | 12,768 |
-| Cross-split suspicious pairs | 2,487 |
-| Unique images involved in one or more pair | 1,708 |
-| Same visual hash (distance 0) pairs | 353 |
-| Pairs requiring a single-split holdout policy (distance 0–3) | 1,342 |
-| Same-label pairs | 2,074 |
-| Different-label pairs requiring label-conflict inspection | 413 |
+| Cross-split suspicious pairs | 911 |
+| Unique images involved in one or more pair | 1,088 |
+| Same visual hash (distance 0) pairs | 293 |
+| Pairs requiring a single-split holdout policy (distance 0–3) | 824 |
+| Same-label pairs | 909 |
+| Different-label pairs requiring label-conflict inspection | 2 |
 
 The largest concentrations are 1,208 speed-bump pairs inside the Kaggle Speed
 Bump source, 491 pairs inside SVRDD, and 315 pothole pairs shared by the V1
@@ -128,14 +128,29 @@ training-only source and the approved GitHub pothole source. The machine
 readable shortlist is `docs/v2_cross_split_near_duplicate_pairs.csv`; the
 reproducible summary is `reports/v2_cross_split_near_duplicate_audit.json`.
 
-## Remaining blocker before materializing files
+## Resolution status and remaining blocker
 
-The current source-aware split is **not yet safe to materialize**. A future
-small task must keep each confirmed near-duplicate family in one split only
-(or exclude it from validation/protected test), then regenerate and rerun this
-audit. This prevents nearly identical road photos from appearing in both
-training and evaluation, which would make a V2 score misleadingly high.
+All 911 shortlisted pairs were reviewed. They form 375 confirmed exact-
+duplicate families containing 1,088 records. The metadata-only resolution
+manifest keeps each same-label family in training, so none of its members
+remains in validation or the protected test. This conservative choice avoids
+evaluating on a visual copy while preserving raw data and never copying,
+deleting, or relabelling an image.
 
-No V2 model may be trained before that conflict-resolution step is completed
-and documented. The protected test split must remain untouched during model
-selection.
+- Reviewed pairs:
+  `docs/v2_cross_split_near_duplicate_review_manifest.csv`
+- Final manifest:
+  `docs/v2_multiclass_split_manifest_near_duplicate_final.csv`
+- Reproducible resolver:
+  `src/resolve_v2_near_duplicate_families.py`
+
+Two confirmed duplicate families have conflicting labels: one `pothole` /
+`crack` family and one `crack` / `repaired_road` family. Their four records are
+excluded from every split rather than forcing a label decision. The final
+metadata plan contains 9,452 training, 1,658 validation, 1,654 protected-test,
+and four excluded label-conflict records.
+
+The near-duplicate gate is now complete. The plan remains metadata-only: do
+not copy or link image files until a separate, approved materialization task.
+No V2 model may be trained before the Data Gate is documented as complete, and
+the protected test must remain untouched during model selection.
