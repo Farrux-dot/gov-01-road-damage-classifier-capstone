@@ -31,8 +31,9 @@ does not replace V1 and no V2 model has been trained.
 - Eligible proposed multi-class candidates: 12,768.
 - Proposed labels: crack, pothole, repaired road, normal asphalt, speed bump,
   manhole cover, and unpaved road.
-- The metadata-only proposed split is 70% train (8,936), 15% validation
-  (1,916), and 15% protected test (1,916), using seed 42.
+- The original metadata-only split used seed 42. It has now been replaced by
+  the near-duplicate-resolved final metadata manifest: 9,452 training, 1,658
+  validation, 1,654 protected-test, and four excluded label-conflict records.
 - No final V2 image folders were copied or materialized by this split process.
 
 The main evidence is `docs/V2_FINAL_DATA_AUDIT_AND_SPLIT_PLAN.md`,
@@ -44,19 +45,20 @@ The main evidence is `docs/V2_FINAL_DATA_AUDIT_AND_SPLIT_PLAN.md`,
 Exact-hash checks passed for the V2 candidate inventory: no duplicate SHA-256
 groups and no source validation/test records were accidentally included.
 
-However, the cross-split near-duplicate audit found:
+The cross-split near-duplicate audit found 911 suspicious pairs involving
+1,088 images. All were reviewed and resolved into 375 confirmed exact-duplicate
+families. Same-label families were placed in training only. Two families had
+conflicting labels (`pothole` / `crack` and `crack` / `repaired_road`), so their
+four records are excluded rather than relabeled.
 
-- 2,487 suspicious cross-split pairs;
-- 1,342 pairs needing a same-split holdout policy (distance 0–3);
-- 413 different-label pairs needing label-conflict inspection.
-
-The current V2 split is **not safe to materialize**. Before training or copying
-V2 files, resolve confirmed near-duplicate families so they remain in one split
-or are held out, regenerate the manifest, and rerun the audit. Keep the
+The final manifest has zero remaining cross-split duplicate pairs and no
+remaining review items. It is still metadata only: do not copy, link, move, or
+delete images without a separate approved materialization task. Keep the
 protected test untouched during model selection.
 
-Evidence: `docs/v2_cross_split_near_duplicate_pairs.csv` and
-`reports/v2_cross_split_near_duplicate_audit.json`.
+Evidence: `docs/v2_cross_split_near_duplicate_pairs_reviewed.csv`,
+`docs/v2_multiclass_split_manifest_near_duplicate_final.csv`, and
+`docs/V2_FINAL_DATA_AUDIT_AND_SPLIT_PLAN.md`.
 
 ## Important scope boundaries
 
@@ -71,6 +73,6 @@ Evidence: `docs/v2_cross_split_near_duplicate_pairs.csv` and
 
 ## Safest next task
 
-Perform a small, documented near-duplicate conflict-resolution task for the
-V2 proposed split. Do not delete, move, regenerate, or train until the exact
-candidate families and split policy are approved.
+Review and document whether all V2 Data Gate requirements are now satisfied.
+Do not materialize the split, delete or move images, or train a V2 model unless
+that separate next step is explicitly approved.
