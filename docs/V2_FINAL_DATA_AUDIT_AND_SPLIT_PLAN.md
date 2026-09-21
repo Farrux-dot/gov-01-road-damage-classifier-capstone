@@ -104,11 +104,38 @@ The test split must stay untouched while models are trained and tuned. It is
 not a source for augmentation, class balancing, threshold selection, or model
 comparison.
 
+## Cross-split near-duplicate audit — completed
+
+The split manifest was scanned with a conservative visual shortlist: a compact
+grayscale difference hash, matched brightness/contrast bins, and a small
+thumbnail comparison. This finds possible visual duplicates, including
+re-encoded copies that do not have the same SHA-256 file hash. It does **not**
+delete, relabel, move, or copy any images.
+
+| Check | Result |
+| --- | ---: |
+| Manifest images scanned | 12,768 |
+| Cross-split suspicious pairs | 2,487 |
+| Unique images involved in one or more pair | 1,708 |
+| Same visual hash (distance 0) pairs | 353 |
+| Pairs requiring a single-split holdout policy (distance 0–3) | 1,342 |
+| Same-label pairs | 2,074 |
+| Different-label pairs requiring label-conflict inspection | 413 |
+
+The largest concentrations are 1,208 speed-bump pairs inside the Kaggle Speed
+Bump source, 491 pairs inside SVRDD, and 315 pothole pairs shared by the V1
+training-only source and the approved GitHub pothole source. The machine
+readable shortlist is `docs/v2_cross_split_near_duplicate_pairs.csv`; the
+reproducible summary is `reports/v2_cross_split_near_duplicate_audit.json`.
+
 ## Remaining blocker before materializing files
 
-Run a near-duplicate audit against the generated split manifest. Exact
-byte-identical duplicates are already excluded, but visually similar images
-can still make an evaluation unrealistically easy if they land in different
-splits. Only after this check and explicit approval may a later task
-materialize train/validation/protected-test image folders. No V2 model may be
-trained before then.
+The current source-aware split is **not yet safe to materialize**. A future
+small task must keep each confirmed near-duplicate family in one split only
+(or exclude it from validation/protected test), then regenerate and rerun this
+audit. This prevents nearly identical road photos from appearing in both
+training and evaluation, which would make a V2 score misleadingly high.
+
+No V2 model may be trained before that conflict-resolution step is completed
+and documented. The protected test split must remain untouched during model
+selection.
