@@ -5,10 +5,45 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from src.build_v2_multilabel_coverage_manifest import build_manifest
+from src.build_v2_multilabel_coverage_manifest import _rome_rows, build_manifest
 
 
 class CoverageManifestTests(unittest.TestCase):
+    def test_rome_rows_exclude_the_whole_image_with_an_invalid_box(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            images_root = root / "rome_images"
+            images_root.mkdir()
+            images = []
+            for image_id in range(1, 2010):
+                filename = f"{image_id}.jpg"
+                (images_root / filename).write_bytes(str(image_id).encode("ascii"))
+                images.append({"id": image_id, "file_name": filename})
+            coco_path = root / "rome.json"
+            coco_path.write_text(
+                json.dumps(
+                    {
+                        "images": images,
+                        "categories": [{"id": 0, "name": "pothole"}, {"id": 1, "name": "crack"}, {"id": 2, "name": "manhole"}],
+                        "annotations": [
+                            {"image_id": 1, "category_id": 0, "bbox": [0, 0, 1, 1]},
+                            {"image_id": 1, "category_id": 1, "bbox": [0, 0, 1, 1]},
+                            {"image_id": 2, "category_id": 1, "bbox": [0, 0, 1, 0]},
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            inventory = root / "inventory.csv"
+            inventory.write_text("sha256\n", encoding="utf-8")
+            rows = _rome_rows(coco_path, images_root, inventory)
+            self.assertEqual(len(rows), 2008)
+            self.assertNotIn("ROAD_DAMAGE_ROME:2", {row["record_id"] for row in rows})
+            first_row = next(row for row in rows if row["record_id"] == "ROAD_DAMAGE_ROME:1")
+            self.assertEqual(first_row["pothole_present"], 1)
+            self.assertEqual(first_row["crack_present"], 1)
+            self.assertEqual(first_row["manhole_cover_present"], 0)
+
     def test_manifest_preserves_unknown_labels_instead_of_making_them_absent(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -116,7 +151,7 @@ class CoverageManifestTests(unittest.TestCase):
             self.assertEqual(kaggle_row["pothole_known"], "0")
             self.assertEqual(kaggle_row["pothole_present"], "")
 
-    def test_existing_road_marking_and_unpaved_candidates_are_positive_only(self):
+    def test_existing_additional_class_candidates_are_positive_only(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             images_root = root / "svrdd_images"
@@ -133,15 +168,19 @@ class CoverageManifestTests(unittest.TestCase):
                     annotation_archive.writestr(f"{number:09d}.json", json.dumps({"shapes": [{"label": "roadAsphalt"}]}))
             marking_image = root / "data" / "raw" / "ceymo" / "marking.jpg"
             unpaved_image = root / "data" / "raw" / "rqd" / "unpaved.jpg"
+            pothole_image = root / "data" / "raw" / "v1" / "pothole.jpg"
             marking_image.parent.mkdir(parents=True)
             unpaved_image.parent.mkdir(parents=True)
+            pothole_image.parent.mkdir(parents=True)
             marking_image.write_bytes(b"marking")
             unpaved_image.write_bytes(b"unpaved")
+            pothole_image.write_bytes(b"pothole")
             inventory = root / "inventory.csv"
             inventory.write_text(
                 "candidate_id,source_id,source_image_path,source_annotation_path,proposed_multiclass_label,proposed_multilabels,sha256\n"
                 "ceymo::one,CeyMo,data/raw/ceymo/marking.jpg,docs/marking.xml,,road_marking,hash-marking\n"
-                "rqd::one,Road Quality Dataset (RQD),data/raw/rqd/unpaved.jpg,docs/rqd.csv,unpaved_road,,hash-unpaved\n",
+                "rqd::one,Road Quality Dataset (RQD),data/raw/rqd/unpaved.jpg,docs/rqd.csv,unpaved_road,,hash-unpaved\n"
+                "v1::one,V1_Kaggle_pothole_detection,data/raw/v1/pothole.jpg,docs/v1.csv,,pothole,hash-pothole\n",
                 encoding="utf-8",
             )
             output_csv = root / "coverage.csv"
@@ -160,10 +199,13 @@ class CoverageManifestTests(unittest.TestCase):
                 rows = list(csv.DictReader(source))
             marking_row = next(row for row in rows if row["source_dataset"] == "CeyMo")
             unpaved_row = next(row for row in rows if row["source_dataset"] == "Road Quality Dataset (RQD)")
+            pothole_row = next(row for row in rows if row["source_dataset"] == "V1_Kaggle_pothole_detection")
             self.assertEqual(marking_row["road_marking_present"], "1")
             self.assertEqual(marking_row["crack_present"], "")
             self.assertEqual(unpaved_row["unpaved_road_present"], "1")
             self.assertEqual(unpaved_row["pothole_present"], "")
+            self.assertEqual(pothole_row["pothole_present"], "1")
+            self.assertEqual(pothole_row["road_marking_present"], "")
 
 
 if __name__ == "__main__":

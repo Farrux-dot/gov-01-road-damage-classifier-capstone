@@ -60,6 +60,8 @@ RTK_EXPECTED_SOURCE_LABELS = {
     "pothole",
     "speedBump",
 }
+ROME_CATEGORY_TO_CONDITION = {0: "pothole", 1: "crack", 2: "manhole_cover"}
+ROME_KNOWN_CONDITIONS = set(ROME_CATEGORY_TO_CONDITION.values())
 
 
 def _coverage_fields(present: set[str], known: set[str]) -> dict[str, int | str]:
@@ -267,8 +269,8 @@ def _mendeley_speed_bump_rows(images_root: Path, holdout_path: Path) -> tuple[li
     return rows, hashes
 
 
-def _existing_weak_class_rows(inventory_path: Path, project_root: Path) -> tuple[list[dict[str, Any]], set[str]]:
-    """Reuse audited CeyMo and unpaved-road candidates as positive-only evidence.
+def _existing_additional_class_rows(inventory_path: Path, project_root: Path) -> tuple[list[dict[str, Any]], set[str]]:
+    """Reuse audited additional class candidates as positive-only evidence.
 
     These sources verify their own named condition, but do not provide a full
     seven-condition truth table. All other conditions intentionally remain
@@ -298,6 +300,13 @@ def _existing_weak_class_rows(inventory_path: Path, project_root: Path) -> tuple
                 and record["proposed_multiclass_label"] == "unpaved_road"
             ):
                 selected.append((record, "unpaved_road"))
+            elif (
+                record["source_id"] in {"jaygala24_pothole_detection", "V1_Kaggle_pothole_detection"}
+                and (record["proposed_multilabels"] == "pothole" or record["proposed_multiclass_label"] == "pothole")
+            ):
+                selected.append((record, "pothole"))
+            elif record["source_id"] == "delima87_manhole_covers_dataset" and record["proposed_multilabels"] == "manhole_cover":
+                selected.append((record, "manhole_cover"))
     rows: list[dict[str, Any]] = []
     hashes: set[str] = set()
     for record, condition in selected:
@@ -326,8 +335,82 @@ def _existing_weak_class_rows(inventory_path: Path, project_root: Path) -> tuple
             }
         )
     if not rows:
-        raise ValueError("No selected road-marking or unpaved-road candidates were found")
+        raise ValueError("No selected additional-class candidates were found")
     return rows, hashes
+
+
+def _inventory_hashes(inventory_path: Path) -> set[str]:
+    with inventory_path.open(newline="", encoding="utf-8") as source:
+        reader = csv.DictReader(source)
+        if reader.fieldnames is None or "sha256" not in reader.fieldnames:
+            raise ValueError("V2 candidate inventory does not contain SHA-256 values")
+        return {record["sha256"] for record in reader if record.get("sha256")}
+
+
+def _rome_rows(coco_path: Path, images_root: Path, inventory_path: Path) -> list[dict[str, Any]]:
+    """Build clean, three-condition coverage rows from Road Damage Rome COCO boxes.
+
+    Any image with an invalid source box is excluded as a whole. It is never
+    repaired or partially guessed. Rome labels only crack, pothole, and
+    manhole cover, so the four other project conditions remain unknown.
+    """
+    if not coco_path.is_file() or not images_root.is_dir():
+        raise FileNotFoundError("Road Damage Rome COCO annotations and image directory are required")
+    document = json.loads(coco_path.read_text(encoding="utf-8"))
+    images = document.get("images")
+    annotations = document.get("annotations")
+    categories = document.get("categories")
+    if not isinstance(images, list) or not isinstance(annotations, list) or not isinstance(categories, list):
+        raise ValueError("Road Damage Rome COCO document has an unexpected schema")
+    category_names = {category.get("id"): category.get("name") for category in categories if isinstance(category, dict)}
+    expected_category_names = {0: "pothole", 1: "crack", 2: "manhole"}
+    if category_names != expected_category_names:
+        raise ValueError(f"Unexpected Road Damage Rome categories: {category_names}")
+    image_by_id: dict[int, dict[str, Any]] = {}
+    for image in images:
+        if not isinstance(image, dict) or not isinstance(image.get("id"), int) or not isinstance(image.get("file_name"), str):
+            raise ValueError("Road Damage Rome contains an invalid image record")
+        image_by_id[image["id"]] = image
+    invalid_image_ids: set[int] = set()
+    labels_by_image: dict[int, set[str]] = {image_id: set() for image_id in image_by_id}
+    for annotation in annotations:
+        if not isinstance(annotation, dict) or annotation.get("image_id") not in image_by_id:
+            raise ValueError("Road Damage Rome contains an annotation for an unknown image")
+        category_id = annotation.get("category_id")
+        if category_id not in ROME_CATEGORY_TO_CONDITION:
+            raise ValueError(f"Road Damage Rome has an unsupported category ID: {category_id!r}")
+        bbox = annotation.get("bbox")
+        if not isinstance(bbox, list) or len(bbox) != 4 or bbox[2] <= 0 or bbox[3] <= 0:
+            invalid_image_ids.add(annotation["image_id"])
+            continue
+        labels_by_image[annotation["image_id"]].add(ROME_CATEGORY_TO_CONDITION[category_id])
+    if len(image_by_id) != 2009 or len(invalid_image_ids) != 1:
+        raise ValueError(
+            f"Expected 2,009 Rome images with one invalid-image exclusion; found {len(image_by_id)} images and {len(invalid_image_ids)} exclusions"
+        )
+    existing_hashes = _inventory_hashes(inventory_path)
+    rows: list[dict[str, Any]] = []
+    for image_id in sorted(image_by_id):
+        if image_id in invalid_image_ids:
+            continue
+        image = image_by_id[image_id]
+        image_path = images_root / image["file_name"]
+        if not image_path.is_file():
+            raise FileNotFoundError(f"Road Damage Rome image missing: {image_path}")
+        if _sha256(image_path) in existing_hashes:
+            raise ValueError(f"Road Damage Rome image duplicates the existing inventory: {image_path}")
+        rows.append(
+            {
+                "record_id": f"ROAD_DAMAGE_ROME:{image_id}",
+                "source_dataset": "Road_Damage_Rome",
+                "original_source_split": "unsplit_source_collection",
+                "stable_group_id": f"ROAD_DAMAGE_ROME:{image_id}",
+                "image_reference": str(image_path),
+                "annotation_reference": f"{coco_path}#image_id={image_id}",
+                **_coverage_fields(labels_by_image[image_id], ROME_KNOWN_CONDITIONS),
+            }
+        )
+    return rows
 
 
 def _fieldnames() -> list[str]:
@@ -371,6 +454,8 @@ def build_manifest(
     mendeley_speed_bump_root: Path | None = None,
     mendeley_conflict_holdout: Path | None = None,
     candidate_inventory: Path | None = None,
+    rome_coco: Path | None = None,
+    rome_images_root: Path | None = None,
 ) -> dict[str, Any]:
     """Build and save the coverage manifest plus a compact verification summary."""
     rows = _svrdd_rows(svrdd_metadata, svrdd_images_root) + _rtk_rows(rtk_images_archive, rtk_annotations_archive)
@@ -388,8 +473,13 @@ def build_manifest(
     if candidate_inventory is not None:
         if project_root is None:
             raise ValueError("project_root is required when adding weak-class candidates")
-        weak_class_rows, _ = _existing_weak_class_rows(candidate_inventory, project_root)
-        rows.extend(weak_class_rows)
+        additional_class_rows, _ = _existing_additional_class_rows(candidate_inventory, project_root)
+        rows.extend(additional_class_rows)
+    rome_options = (rome_coco, rome_images_root)
+    if any(option is not None for option in rome_options):
+        if candidate_inventory is None or any(option is None for option in rome_options):
+            raise ValueError("Road Damage Rome requires its COCO file, image directory, and candidate inventory")
+        rows.extend(_rome_rows(rome_coco, rome_images_root, candidate_inventory))  # type: ignore[arg-type]
     ids = [str(row["record_id"]) for row in rows]
     if len(ids) != len(set(ids)):
         raise ValueError("Manifest record IDs must be unique")
@@ -417,6 +507,8 @@ def main() -> None:
     parser.add_argument("--mendeley-speed-bump-root", type=Path)
     parser.add_argument("--mendeley-conflict-holdout", type=Path)
     parser.add_argument("--candidate-inventory", type=Path, help="Existing audited CeyMo/RQD/StreetSurfaceVis inventory")
+    parser.add_argument("--rome-coco", type=Path, help="Road Damage Rome COCO annotation file")
+    parser.add_argument("--rome-images-root", type=Path, help="Road Damage Rome JPG image folder")
     args = parser.parse_args()
     result = build_manifest(
         svrdd_metadata=args.svrdd_metadata,
@@ -430,6 +522,8 @@ def main() -> None:
         mendeley_speed_bump_root=args.mendeley_speed_bump_root,
         mendeley_conflict_holdout=args.mendeley_conflict_holdout,
         candidate_inventory=args.candidate_inventory,
+        rome_coco=args.rome_coco,
+        rome_images_root=args.rome_images_root,
     )
     print(f"Built {result['total_records']} non-materialized coverage records: {args.output_csv}")
     for source_name, source_summary in result["sources"].items():
