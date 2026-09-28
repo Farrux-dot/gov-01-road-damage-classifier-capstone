@@ -267,6 +267,69 @@ def _mendeley_speed_bump_rows(images_root: Path, holdout_path: Path) -> tuple[li
     return rows, hashes
 
 
+def _existing_weak_class_rows(inventory_path: Path, project_root: Path) -> tuple[list[dict[str, Any]], set[str]]:
+    """Reuse audited CeyMo and unpaved-road candidates as positive-only evidence.
+
+    These sources verify their own named condition, but do not provide a full
+    seven-condition truth table. All other conditions intentionally remain
+    unknown in the generated rows.
+    """
+    if not inventory_path.is_file():
+        raise FileNotFoundError(f"Missing V2 candidate inventory: {inventory_path}")
+    selected: list[tuple[dict[str, str], str]] = []
+    with inventory_path.open(newline="", encoding="utf-8") as source:
+        reader = csv.DictReader(source)
+        required = {
+            "candidate_id",
+            "source_id",
+            "source_image_path",
+            "source_annotation_path",
+            "proposed_multiclass_label",
+            "proposed_multilabels",
+            "sha256",
+        }
+        if reader.fieldnames is None or not required.issubset(reader.fieldnames):
+            raise ValueError("V2 candidate inventory has an unexpected schema")
+        for record in reader:
+            if record["source_id"] == "CeyMo" and record["proposed_multilabels"] == "road_marking":
+                selected.append((record, "road_marking"))
+            elif (
+                record["source_id"] in {"Road Quality Dataset (RQD)", "StreetSurfaceVis"}
+                and record["proposed_multiclass_label"] == "unpaved_road"
+            ):
+                selected.append((record, "unpaved_road"))
+    rows: list[dict[str, Any]] = []
+    hashes: set[str] = set()
+    for record, condition in selected:
+        candidate_id = record["candidate_id"]
+        source_hash = record["sha256"]
+        image_relative_path = record["source_image_path"]
+        annotation_relative_path = record["source_annotation_path"]
+        if not candidate_id or not source_hash or not image_relative_path:
+            raise ValueError("Selected weak-class candidate is incomplete")
+        image_path = project_root / image_relative_path
+        if not image_path.is_file():
+            raise FileNotFoundError(f"Weak-class candidate image missing: {image_path}")
+        if source_hash in hashes:
+            raise ValueError(f"Selected weak-class candidates contain an exact duplicate: {candidate_id}")
+        hashes.add(source_hash)
+        annotation_reference = str(project_root / annotation_relative_path) if annotation_relative_path else ""
+        rows.append(
+            {
+                "record_id": f"{record['source_id']}:{candidate_id}",
+                "source_dataset": record["source_id"],
+                "original_source_split": "source_candidate",
+                "stable_group_id": f"{record['source_id']}:{candidate_id}",
+                "image_reference": str(image_path),
+                "annotation_reference": annotation_reference,
+                **_coverage_fields({condition}, {condition}),
+            }
+        )
+    if not rows:
+        raise ValueError("No selected road-marking or unpaved-road candidates were found")
+    return rows, hashes
+
+
 def _fieldnames() -> list[str]:
     fields = [
         "record_id",
@@ -307,12 +370,13 @@ def build_manifest(
     project_root: Path | None = None,
     mendeley_speed_bump_root: Path | None = None,
     mendeley_conflict_holdout: Path | None = None,
+    candidate_inventory: Path | None = None,
 ) -> dict[str, Any]:
     """Build and save the coverage manifest plus a compact verification summary."""
     rows = _svrdd_rows(svrdd_metadata, svrdd_images_root) + _rtk_rows(rtk_images_archive, rtk_annotations_archive)
-    speed_bump_options = (kaggle_speed_bump_audit, project_root, mendeley_speed_bump_root, mendeley_conflict_holdout)
+    speed_bump_options = (kaggle_speed_bump_audit, mendeley_speed_bump_root, mendeley_conflict_holdout)
     if any(option is not None for option in speed_bump_options):
-        if any(option is None for option in speed_bump_options):
+        if project_root is None or any(option is None for option in speed_bump_options):
             raise ValueError("All four speed-bump source arguments are required together")
         kaggle_rows, kaggle_hashes = _kaggle_speed_bump_rows(kaggle_speed_bump_audit, project_root)  # type: ignore[arg-type]
         mendeley_rows, mendeley_hashes = _mendeley_speed_bump_rows(mendeley_speed_bump_root, mendeley_conflict_holdout)  # type: ignore[arg-type]
@@ -321,6 +385,11 @@ def build_manifest(
             raise ValueError(f"Kaggle and Mendeley speed-bump sources overlap exactly: {len(overlap)} hashes")
         rows.extend(kaggle_rows)
         rows.extend(mendeley_rows)
+    if candidate_inventory is not None:
+        if project_root is None:
+            raise ValueError("project_root is required when adding weak-class candidates")
+        weak_class_rows, _ = _existing_weak_class_rows(candidate_inventory, project_root)
+        rows.extend(weak_class_rows)
     ids = [str(row["record_id"]) for row in rows]
     if len(ids) != len(set(ids)):
         raise ValueError("Manifest record IDs must be unique")
@@ -347,6 +416,7 @@ def main() -> None:
     parser.add_argument("--project-root", type=Path)
     parser.add_argument("--mendeley-speed-bump-root", type=Path)
     parser.add_argument("--mendeley-conflict-holdout", type=Path)
+    parser.add_argument("--candidate-inventory", type=Path, help="Existing audited CeyMo/RQD/StreetSurfaceVis inventory")
     args = parser.parse_args()
     result = build_manifest(
         svrdd_metadata=args.svrdd_metadata,
@@ -359,6 +429,7 @@ def main() -> None:
         project_root=args.project_root,
         mendeley_speed_bump_root=args.mendeley_speed_bump_root,
         mendeley_conflict_holdout=args.mendeley_conflict_holdout,
+        candidate_inventory=args.candidate_inventory,
     )
     print(f"Built {result['total_records']} non-materialized coverage records: {args.output_csv}")
     for source_name, source_summary in result["sources"].items():

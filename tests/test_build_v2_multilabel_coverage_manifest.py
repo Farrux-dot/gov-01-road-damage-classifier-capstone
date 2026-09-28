@@ -116,6 +116,55 @@ class CoverageManifestTests(unittest.TestCase):
             self.assertEqual(kaggle_row["pothole_known"], "0")
             self.assertEqual(kaggle_row["pothole_present"], "")
 
+    def test_existing_road_marking_and_unpaved_candidates_are_positive_only(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            images_root = root / "svrdd_images"
+            source_image = images_root / "images" / "region" / "one.jpg"
+            source_image.parent.mkdir(parents=True)
+            source_image.write_bytes(b"svrdd")
+            metadata_path = root / "train.metadata.jsonl"
+            metadata_path.write_text(json.dumps({"file_name": "images/region/one.jpg", "image_id": "one", "objects": {"category_names": ["pothole"]}}) + "\n", encoding="utf-8")
+            rtk_images = root / "rtk_images.zip"
+            rtk_annotations = root / "rtk_annotations.zip"
+            with zipfile.ZipFile(rtk_images, "w") as image_archive, zipfile.ZipFile(rtk_annotations, "w") as annotation_archive:
+                for number in range(701):
+                    image_archive.writestr(f"{number:09d}.png", b"placeholder")
+                    annotation_archive.writestr(f"{number:09d}.json", json.dumps({"shapes": [{"label": "roadAsphalt"}]}))
+            marking_image = root / "data" / "raw" / "ceymo" / "marking.jpg"
+            unpaved_image = root / "data" / "raw" / "rqd" / "unpaved.jpg"
+            marking_image.parent.mkdir(parents=True)
+            unpaved_image.parent.mkdir(parents=True)
+            marking_image.write_bytes(b"marking")
+            unpaved_image.write_bytes(b"unpaved")
+            inventory = root / "inventory.csv"
+            inventory.write_text(
+                "candidate_id,source_id,source_image_path,source_annotation_path,proposed_multiclass_label,proposed_multilabels,sha256\n"
+                "ceymo::one,CeyMo,data/raw/ceymo/marking.jpg,docs/marking.xml,,road_marking,hash-marking\n"
+                "rqd::one,Road Quality Dataset (RQD),data/raw/rqd/unpaved.jpg,docs/rqd.csv,unpaved_road,,hash-unpaved\n",
+                encoding="utf-8",
+            )
+            output_csv = root / "coverage.csv"
+            summary_json = root / "summary.json"
+            build_manifest(
+                svrdd_metadata=metadata_path,
+                svrdd_images_root=images_root,
+                rtk_images_archive=rtk_images,
+                rtk_annotations_archive=rtk_annotations,
+                output_csv=output_csv,
+                summary_json=summary_json,
+                candidate_inventory=inventory,
+                project_root=root,
+            )
+            with output_csv.open(newline="", encoding="utf-8") as source:
+                rows = list(csv.DictReader(source))
+            marking_row = next(row for row in rows if row["source_dataset"] == "CeyMo")
+            unpaved_row = next(row for row in rows if row["source_dataset"] == "Road Quality Dataset (RQD)")
+            self.assertEqual(marking_row["road_marking_present"], "1")
+            self.assertEqual(marking_row["crack_present"], "")
+            self.assertEqual(unpaved_row["unpaved_road_present"], "1")
+            self.assertEqual(unpaved_row["pothole_present"], "")
+
 
 if __name__ == "__main__":
     unittest.main()

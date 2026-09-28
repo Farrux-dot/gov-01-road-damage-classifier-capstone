@@ -125,7 +125,7 @@ future expansion may use another source with complete machine-readable
 annotations, or a mask-aware learning design that preserves unknown labels
 rather than turning them into false negatives.
 
-## Speed-bump strengthening update
+## Weak-class strengthening update
 
 The speed-bump class must not rely on RTK alone: RTK contributes only eight
 speed-bump-positive images. The project has two larger, already audited
@@ -145,17 +145,29 @@ but do not label the other active conditions. They therefore enter the
 annotation-coverage manifest with `speed_bump_present = 1`; every other
 condition remains unknown, not absent. This requires no student image review.
 
-This strengthens the available evidence for speed bump without making an
-unsupported claim that the other conditions are absent.
+The same positive-only, unknown-safe method now strengthens the other two
+previously limited classes:
+
+| Condition | Added source evidence | Total confirmed-positive evidence including RTK |
+| --- | ---: | ---: |
+| `road_marking` | 2,097 CeyMo polygon-annotated records | 2,318 |
+| `unpaved_road` | 930 StreetSurfaceVis and 163 RQD records | 1,363 |
+| `speed_bump` | 1,076 Kaggle and 147 Mendeley records | 1,231 |
+
+For these added records, only the named condition is known and present. All
+other active conditions remain unknown. This strengthens each class without
+making an unsupported claim that the other conditions are absent.
 
 ## Current non-materialized coverage manifest
 
-The automated coverage-manifest builder now combines 7,924 source records:
+The automated coverage-manifest builder now combines 11,114 source records:
 
 - 6,000 SVRDD records with four fully known conditions;
 - 701 RTK records with six fully known conditions (not manhole cover);
 - 1,076 audited Kaggle speed-bump-positive records; and
-- 147 conflict-safe Mendeley speed-bump-positive records.
+- 147 conflict-safe Mendeley speed-bump-positive records;
+- 2,097 CeyMo road-marking-positive records; and
+- 1,093 unpaved-road-positive records from StreetSurfaceVis and RQD.
 
 It copies no image and creates no training split. Its generated CSV and
 summary stay in ignored `reports/` storage. The reusable builder and test are
