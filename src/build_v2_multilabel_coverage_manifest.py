@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import zipfile
-from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -164,6 +164,109 @@ def _rtk_rows(images_archive_path: Path, annotations_archive_path: Path) -> list
     return rows
 
 
+def _speed_bump_partial_row(
+    *,
+    record_id: str,
+    source_dataset: str,
+    image_reference: str,
+    annotation_reference: str,
+) -> dict[str, Any]:
+    """Create a row for a source that verifies only a speed bump is present."""
+    return {
+        "record_id": record_id,
+        "source_dataset": source_dataset,
+        "original_source_split": "train",
+        "stable_group_id": record_id,
+        "image_reference": image_reference,
+        "annotation_reference": annotation_reference,
+        **_coverage_fields({"speed_bump"}, {"speed_bump"}),
+    }
+
+
+def _kaggle_speed_bump_rows(audit_path: Path, project_root: Path) -> tuple[list[dict[str, Any]], set[str]]:
+    """Reuse only the later audited, non-sequence Kaggle speed-bump candidates."""
+    if not audit_path.is_file():
+        raise FileNotFoundError(f"Missing Kaggle speed-bump audit: {audit_path}")
+    rows: list[dict[str, Any]] = []
+    hashes: set[str] = set()
+    with audit_path.open(newline="", encoding="utf-8") as source:
+        reader = csv.DictReader(source)
+        required = {"source_record_id", "relative_image_path", "sha256", "decision"}
+        if reader.fieldnames is None or not required.issubset(reader.fieldnames):
+            raise ValueError("Kaggle speed-bump audit has an unexpected schema")
+        for line_number, record in enumerate(reader, start=2):
+            if record["decision"] != "keep_train_speed_bump_candidate":
+                continue
+            record_id = record["source_record_id"]
+            image_relative_path = record["relative_image_path"]
+            image_path = project_root / image_relative_path
+            source_hash = record["sha256"]
+            if not record_id or not image_relative_path or not source_hash:
+                raise ValueError(f"Kaggle speed-bump audit line {line_number} is incomplete")
+            if not image_path.is_file():
+                raise FileNotFoundError(f"Kaggle speed-bump image missing: {image_path}")
+            if source_hash in hashes:
+                raise ValueError(f"Kaggle audit retained an exact duplicate: {record_id}")
+            hashes.add(source_hash)
+            rows.append(
+                _speed_bump_partial_row(
+                    record_id=f"KAGGLE_SPEED_BUMP:{record_id}",
+                    source_dataset="Kaggle_speed_bump_dataset",
+                    image_reference=str(image_path),
+                    annotation_reference=f"{audit_path}#line={line_number}",
+                )
+            )
+    if not rows:
+        raise ValueError("Kaggle speed-bump audit contains no retained candidates")
+    return rows, hashes
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as source:
+        for block in iter(lambda: source.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
+def _mendeley_speed_bump_rows(images_root: Path, holdout_path: Path) -> tuple[list[dict[str, Any]], set[str]]:
+    """Use only Mendeley speed-bump images that are not known cross-label conflicts."""
+    if not images_root.is_dir() or not holdout_path.is_file():
+        raise FileNotFoundError("Mendeley speed-bump folder and conflict holdout are both required")
+    held_out_hashes: set[str] = set()
+    with holdout_path.open(newline="", encoding="utf-8") as source:
+        reader = csv.DictReader(source)
+        for record in reader:
+            if record.get("proposed_label") == "speed_bump":
+                held_out_hashes.add(record["sha256"])
+    image_paths = sorted(
+        path
+        for pattern in ("*.jpg", "*.jpeg", "*.png")
+        for path in images_root.rglob(pattern)
+        if path.is_file()
+    )
+    rows: list[dict[str, Any]] = []
+    hashes: set[str] = set()
+    for image_path in image_paths:
+        source_hash = _sha256(image_path)
+        if source_hash in held_out_hashes:
+            continue
+        if source_hash in hashes:
+            raise ValueError(f"Mendeley selected speed-bump folder contains an exact duplicate: {image_path}")
+        hashes.add(source_hash)
+        rows.append(
+            _speed_bump_partial_row(
+                record_id=f"MENDELEY_SPEED_BREAKER:{image_path.name}",
+                source_dataset="Mendeley_Manhole_SpeedBreaker",
+                image_reference=str(image_path),
+                annotation_reference=f"{images_root}#folder-label=Speed_Breaker",
+            )
+        )
+    if not rows:
+        raise ValueError("No conflict-safe Mendeley speed-bump records remain")
+    return rows, hashes
+
+
 def _fieldnames() -> list[str]:
     fields = [
         "record_id",
@@ -200,9 +303,24 @@ def build_manifest(
     rtk_annotations_archive: Path,
     output_csv: Path,
     summary_json: Path,
+    kaggle_speed_bump_audit: Path | None = None,
+    project_root: Path | None = None,
+    mendeley_speed_bump_root: Path | None = None,
+    mendeley_conflict_holdout: Path | None = None,
 ) -> dict[str, Any]:
     """Build and save the coverage manifest plus a compact verification summary."""
     rows = _svrdd_rows(svrdd_metadata, svrdd_images_root) + _rtk_rows(rtk_images_archive, rtk_annotations_archive)
+    speed_bump_options = (kaggle_speed_bump_audit, project_root, mendeley_speed_bump_root, mendeley_conflict_holdout)
+    if any(option is not None for option in speed_bump_options):
+        if any(option is None for option in speed_bump_options):
+            raise ValueError("All four speed-bump source arguments are required together")
+        kaggle_rows, kaggle_hashes = _kaggle_speed_bump_rows(kaggle_speed_bump_audit, project_root)  # type: ignore[arg-type]
+        mendeley_rows, mendeley_hashes = _mendeley_speed_bump_rows(mendeley_speed_bump_root, mendeley_conflict_holdout)  # type: ignore[arg-type]
+        overlap = kaggle_hashes & mendeley_hashes
+        if overlap:
+            raise ValueError(f"Kaggle and Mendeley speed-bump sources overlap exactly: {len(overlap)} hashes")
+        rows.extend(kaggle_rows)
+        rows.extend(mendeley_rows)
     ids = [str(row["record_id"]) for row in rows]
     if len(ids) != len(set(ids)):
         raise ValueError("Manifest record IDs must be unique")
@@ -225,6 +343,10 @@ def main() -> None:
     parser.add_argument("--rtk-annotations-archive", type=Path, required=True)
     parser.add_argument("--output-csv", type=Path, required=True, help="Ignored coverage-manifest output path")
     parser.add_argument("--summary-json", type=Path, required=True, help="Ignored verification-summary output path")
+    parser.add_argument("--kaggle-speed-bump-audit", type=Path)
+    parser.add_argument("--project-root", type=Path)
+    parser.add_argument("--mendeley-speed-bump-root", type=Path)
+    parser.add_argument("--mendeley-conflict-holdout", type=Path)
     args = parser.parse_args()
     result = build_manifest(
         svrdd_metadata=args.svrdd_metadata,
@@ -233,6 +355,10 @@ def main() -> None:
         rtk_annotations_archive=args.rtk_annotations_archive,
         output_csv=args.output_csv,
         summary_json=args.summary_json,
+        kaggle_speed_bump_audit=args.kaggle_speed_bump_audit,
+        project_root=args.project_root,
+        mendeley_speed_bump_root=args.mendeley_speed_bump_root,
+        mendeley_conflict_holdout=args.mendeley_conflict_holdout,
     )
     print(f"Built {result['total_records']} non-materialized coverage records: {args.output_csv}")
     for source_name, source_summary in result["sources"].items():

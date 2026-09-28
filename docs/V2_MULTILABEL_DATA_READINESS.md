@@ -125,12 +125,48 @@ future expansion may use another source with complete machine-readable
 annotations, or a mask-aware learning design that preserves unknown labels
 rather than turning them into false negatives.
 
+## Speed-bump strengthening update
+
+The speed-bump class must not rely on RTK alone: RTK contributes only eight
+speed-bump-positive images. The project has two larger, already audited
+image-level speed-bump sources:
+
+| Source | Confirmed, conflict-safe speed-bump-positive images |
+| --- | ---: |
+| Kaggle Speed Bump Dataset | 1,076 |
+| Mendeley Manhole / Speed-Breaker Dataset | 147 |
+| RTK semantic-segmentation source | 8 |
+| Total available speed-bump-positive evidence | 1,231 |
+
+The Kaggle records are the previously audited, exact-unique, non-sequence
+source-`train` candidates. The Mendeley records exclude the three known
+cross-label conflict cases. These images confirm that a speed bump is present,
+but do not label the other active conditions. They therefore enter the
+annotation-coverage manifest with `speed_bump_present = 1`; every other
+condition remains unknown, not absent. This requires no student image review.
+
+This strengthens the available evidence for speed bump without making an
+unsupported claim that the other conditions are absent.
+
+## Current non-materialized coverage manifest
+
+The automated coverage-manifest builder now combines 7,924 source records:
+
+- 6,000 SVRDD records with four fully known conditions;
+- 701 RTK records with six fully known conditions (not manhole cover);
+- 1,076 audited Kaggle speed-bump-positive records; and
+- 147 conflict-safe Mendeley speed-bump-positive records.
+
+It copies no image and creates no training split. Its generated CSV and
+summary stay in ignored `reports/` storage. The reusable builder and test are
+tracked source code.
+
 ## Next approved-sized task
 
-Build a **non-materialized SVRDD multi-label candidate manifest** from the
-existing source-converted annotations. It must contain one row per selected
-source image, four binary label columns, source path, source annotation path,
-source identifier, and a stable split-group identifier.
+Audit the strengthened **non-materialized annotation-coverage manifest**
+before any materialization or training. This audit must verify source paths,
+image readability, exact duplicates across all sources, and near-duplicate
+risks before proposing any source-aware split.
 
 Before that manifest can be materialized or used for training, verify:
 
