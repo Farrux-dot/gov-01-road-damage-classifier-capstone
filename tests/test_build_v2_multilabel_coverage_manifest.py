@@ -5,10 +5,53 @@ import unittest
 import zipfile
 from pathlib import Path
 
-from src.build_v2_multilabel_coverage_manifest import _rome_rows, build_manifest
+from src.build_v2_multilabel_coverage_manifest import _n_rdd_rows, _rome_rows, build_manifest
 
 
 class CoverageManifestTests(unittest.TestCase):
+    def test_n_rdd_rows_keep_unannotated_conditions_unknown(self):
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            image = root / "one.jpg"
+            annotation = root / "one.xml"
+            image.write_bytes(b"image")
+            annotation.write_text("<annotation/>", encoding="utf-8")
+            candidate = root / "candidate.jsonl"
+            candidate.write_text(
+                json.dumps(
+                    {
+                        "record_id": "N_RDD2024:one",
+                        "source_dataset": "N_RDD2024_official_Mendeley",
+                        "original_source_split": "train",
+                        "stable_group_id": "N_RDD2024:one",
+                        "image_reference": str(image),
+                        "annotation_reference": str(annotation),
+                        "crack_known": 1,
+                        "crack_present": 1,
+                        "pothole_known": 1,
+                        "pothole_present": 0,
+                        "repaired_road_known": 1,
+                        "repaired_road_present": 0,
+                        "manhole_cover_known": 1,
+                        "manhole_cover_present": 1,
+                        "unpaved_road_known": 0,
+                        "unpaved_road_present": "",
+                        "road_marking_known": 0,
+                        "road_marking_present": "",
+                        "speed_bump_known": 0,
+                        "speed_bump_present": "",
+                    }
+                )
+                + "\n",
+                encoding="utf-8",
+            )
+            rows = _n_rdd_rows(candidate)
+            self.assertEqual(len(rows), 1)
+            self.assertEqual(rows[0]["crack_present"], 1)
+            self.assertEqual(rows[0]["manhole_cover_present"], 1)
+            self.assertEqual(rows[0]["road_marking_known"], 0)
+            self.assertEqual(rows[0]["road_marking_present"], "")
+
     def test_rome_rows_exclude_the_whole_image_with_an_invalid_box(self):
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

@@ -62,6 +62,7 @@ RTK_EXPECTED_SOURCE_LABELS = {
 }
 ROME_CATEGORY_TO_CONDITION = {0: "pothole", 1: "crack", 2: "manhole_cover"}
 ROME_KNOWN_CONDITIONS = set(ROME_CATEGORY_TO_CONDITION.values())
+N_RDD_KNOWN_CONDITIONS = {"crack", "pothole", "repaired_road", "manhole_cover"}
 
 
 def _coverage_fields(present: set[str], known: set[str]) -> dict[str, int | str]:
@@ -413,6 +414,70 @@ def _rome_rows(coco_path: Path, images_root: Path, inventory_path: Path) -> list
     return rows
 
 
+def _n_rdd_rows(candidate_manifest: Path) -> list[dict[str, Any]]:
+    """Read the already-audited N-RDD2024 candidate manifest safely.
+
+    N-RDD2024 has complete labels only for crack, pothole, repaired road, and
+    manhole cover.  The remaining conditions must stay unknown.  This reader
+    validates that rule again before the N-RDD records can join a wider
+    coverage manifest; it does not change the raw XML or source images.
+    """
+    if not candidate_manifest.is_file():
+        raise FileNotFoundError(f"Missing N-RDD2024 candidate manifest: {candidate_manifest}")
+    rows: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    with candidate_manifest.open(encoding="utf-8") as source:
+        for line_number, line in enumerate(source, start=1):
+            if not line.strip():
+                continue
+            record = json.loads(line)
+            required = {
+                "record_id",
+                "source_dataset",
+                "original_source_split",
+                "stable_group_id",
+                "image_reference",
+                "annotation_reference",
+            }
+            if not isinstance(record, dict) or not required.issubset(record):
+                raise ValueError(f"N-RDD2024 candidate line {line_number} has an unexpected schema")
+            record_id = record["record_id"]
+            if not isinstance(record_id, str) or not record_id or record_id in seen_ids:
+                raise ValueError(f"N-RDD2024 candidate line {line_number} has a missing or duplicate record ID")
+            if record["source_dataset"] != "N_RDD2024_official_Mendeley":
+                raise ValueError(f"N-RDD2024 candidate line {line_number} has an unexpected source name")
+            image_path = Path(record["image_reference"])
+            annotation_path = Path(record["annotation_reference"])
+            if not image_path.is_file() or not annotation_path.is_file():
+                raise FileNotFoundError(f"N-RDD2024 candidate line {line_number} has a missing image or XML file")
+            fields: dict[str, int | str] = {}
+            for condition in ACTIVE_CONDITIONS:
+                known = record.get(f"{condition}_known")
+                present = record.get(f"{condition}_present")
+                if condition in N_RDD_KNOWN_CONDITIONS:
+                    if known != 1 or present not in {0, 1}:
+                        raise ValueError(f"N-RDD2024 candidate line {line_number} has invalid known coverage for {condition}")
+                elif known != 0 or present != "":
+                    raise ValueError(f"N-RDD2024 candidate line {line_number} incorrectly gives {condition} a label")
+                fields[f"{condition}_known"] = known
+                fields[f"{condition}_present"] = present
+            seen_ids.add(record_id)
+            rows.append(
+                {
+                    "record_id": record_id,
+                    "source_dataset": record["source_dataset"],
+                    "original_source_split": record["original_source_split"],
+                    "stable_group_id": record["stable_group_id"],
+                    "image_reference": str(image_path),
+                    "annotation_reference": str(annotation_path),
+                    **fields,
+                }
+            )
+    if not rows:
+        raise ValueError("N-RDD2024 candidate manifest contains no records")
+    return rows
+
+
 def _fieldnames() -> list[str]:
     fields = [
         "record_id",
@@ -456,6 +521,7 @@ def build_manifest(
     candidate_inventory: Path | None = None,
     rome_coco: Path | None = None,
     rome_images_root: Path | None = None,
+    n_rdd_candidate_manifest: Path | None = None,
 ) -> dict[str, Any]:
     """Build and save the coverage manifest plus a compact verification summary."""
     rows = _svrdd_rows(svrdd_metadata, svrdd_images_root) + _rtk_rows(rtk_images_archive, rtk_annotations_archive)
@@ -480,6 +546,8 @@ def build_manifest(
         if candidate_inventory is None or any(option is None for option in rome_options):
             raise ValueError("Road Damage Rome requires its COCO file, image directory, and candidate inventory")
         rows.extend(_rome_rows(rome_coco, rome_images_root, candidate_inventory))  # type: ignore[arg-type]
+    if n_rdd_candidate_manifest is not None:
+        rows.extend(_n_rdd_rows(n_rdd_candidate_manifest))
     ids = [str(row["record_id"]) for row in rows]
     if len(ids) != len(set(ids)):
         raise ValueError("Manifest record IDs must be unique")
@@ -509,6 +577,7 @@ def main() -> None:
     parser.add_argument("--candidate-inventory", type=Path, help="Existing audited CeyMo/RQD/StreetSurfaceVis inventory")
     parser.add_argument("--rome-coco", type=Path, help="Road Damage Rome COCO annotation file")
     parser.add_argument("--rome-images-root", type=Path, help="Road Damage Rome JPG image folder")
+    parser.add_argument("--n-rdd-candidate-manifest", type=Path, help="Audited N-RDD2024 derived JSONL candidate manifest")
     args = parser.parse_args()
     result = build_manifest(
         svrdd_metadata=args.svrdd_metadata,
@@ -524,6 +593,7 @@ def main() -> None:
         candidate_inventory=args.candidate_inventory,
         rome_coco=args.rome_coco,
         rome_images_root=args.rome_images_root,
+        n_rdd_candidate_manifest=args.n_rdd_candidate_manifest,
     )
     print(f"Built {result['total_records']} non-materialized coverage records: {args.output_csv}")
     for source_name, source_summary in result["sources"].items():

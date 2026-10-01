@@ -2,9 +2,10 @@
 
 ## Decision
 
-**Approved as a derived candidate source for four conditions only:** `crack`,
-`pothole`, `repaired_road`, and `manhole_cover`. It is not yet merged into the
-existing V2 training split and no model was trained from it.
+**Approved as a derived source for four conditions only:** `crack`,
+`pothole`, `repaired_road`, and `manhole_cover`. It has been added only to a
+new, separately materialized V2 expansion split. No model was trained from
+that split.
 
 ## Source and boundary
 
@@ -79,7 +80,10 @@ counts are 18,717 for `crack`, 2,378 for `pothole`, 2,498 for
 
 ## Remaining boundary
 
-The source is now an audited candidate pool, not automatically part of the
-current model's train/validation/protected-test split. A later integration
-must build a new source-aware split, preserve the protected test boundary,
-and use the existing masked-loss rule for conditions that remain unknown.
+The source is now part of a separately audited V2 expansion split. It does not
+alter the earlier multi-label dataset, its models, its results, or its already
+used test set. The new expansion has a fresh test split that must remain
+unseen until a new model candidate is locked.
+
+See [`V2_N_RDD2024_EXPANSION_SPLIT_AUDIT.md`](V2_N_RDD2024_EXPANSION_SPLIT_AUDIT.md)
+for the combined-pool audit and materialization result.
