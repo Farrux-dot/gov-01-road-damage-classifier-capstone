@@ -19,7 +19,7 @@ inventory. Raw images and archives remain Git ignored.
 | Source | URL | Reason |
 | --- | --- | --- |
 | RDD2022 | https://figshare.com/articles/dataset/RDD2022_-_The_multi-national_Road_Damage_Dataset_released_through_CRDDC_2022/21431547 | Official archive download was throttled; do not use until a new official access route is verified. |
-| N-RDD2024 | https://data.mendeley.com/datasets/27c8pwsd6v/5 | Not downloaded or audited for this project. |
+| N-RDD2024 | https://data.mendeley.com/datasets/27c8pwsd6v/5 | Audited candidate pool for crack, pothole, repaired road, and manhole cover; source test remains unused. See `V2_N_RDD2024_DATA_AUDIT.md`. |
 
 ## Missing-label rule
 
