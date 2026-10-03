@@ -4,6 +4,8 @@ from pathlib import Path
 
 import streamlit as st
 
+from src.app_logic import select_result_view
+from src.image_source import download_public_image
 from src.v2_multiclass_e8_inference import load_e8_config, load_e8_model, predict_e8_image
 from src.v2_multilabel_e7_inference import load_e7_config, load_e7_model, predict_e7_image
 
@@ -51,61 +53,85 @@ def get_phase_2_artifacts():
 
 
 st.title("GOV-01 Road Condition Checker")
-st.caption("One uploaded road image → Phase 1 and Phase 2 results")
+st.caption("Choose a road image from your device or use a direct public image link")
 
 st.info(
-    "One image is checked by two locked models. The app only predicts; it does not train, "
-    "change thresholds, or alter either model."
+    "The app first checks how many Phase 2 conditions meet their locked thresholds. "
+    "It then shows one appropriate result: Phase 1 for zero or one condition, or "
+    "Phase 2 for two or more conditions. It only predicts; it never trains or changes either model."
 )
 
-try:
-    phase_1_model, phase_1_config = get_phase_1_artifacts()
-    phase_2_model, phase_2_config = get_phase_2_artifacts()
-except (FileNotFoundError, ValueError) as exc:
-    st.error(str(exc))
-    st.stop()
-
-uploaded_image = st.file_uploader(
-    "Upload a road image",
-    type=["jpg", "jpeg", "png"],
-    help="Use a readable PNG or JPEG image of a road scene.",
+source_choice = st.radio(
+    "Choose an image source",
+    ["Upload from device", "Use an image URL"],
+    horizontal=True,
 )
 
-if uploaded_image is not None:
-    st.image(
-        uploaded_image,
-        caption="Selected image (compact preview)",
-        width=240,
+selected_image = None
+if source_choice == "Upload from device":
+    selected_image = st.file_uploader(
+        "Upload a road image",
+        type=["jpg", "jpeg", "png"],
+        help="Use a readable PNG or JPEG image of a road scene.",
     )
-    st.caption(
-        "This preview is only for checking the selected image."
+    if selected_image is not None:
+        st.image(selected_image, caption="Selected image (preview)", width=240)
+    analyze_requested = st.button(
+        "Analyze road image",
+        type="primary",
+        use_container_width=True,
+        disabled=selected_image is None,
     )
-
-    if st.button("Analyze road image", type="primary", use_container_width=True):
+else:
+    image_url = st.text_input(
+        "Direct public JPG or PNG link",
+        placeholder="https://example.org/road-photo.jpg",
+        help="Paste the final JPG or PNG file address, not a web-page address. The image must be public and at most 10 MB.",
+    )
+    analyze_requested = st.button(
+        "Analyze road image",
+        type="primary",
+        use_container_width=True,
+        disabled=not image_url.strip(),
+    )
+    if analyze_requested:
         try:
-            phase_1_result = predict_e8_image(
-                uploaded_image, model=phase_1_model, config=phase_1_config
-            )
-            phase_2_result = predict_e7_image(
-                uploaded_image, model=phase_2_model, config=phase_2_config
-            )
+            selected_image = download_public_image(image_url)
         except ValueError as exc:
             st.error(str(exc))
-        else:
-            st.divider()
+
+if selected_image is not None and analyze_requested:
+    st.image(
+        selected_image,
+        caption="Selected image (preview)",
+        width=240,
+    )
+    try:
+        phase_2_model, phase_2_config = get_phase_2_artifacts()
+        phase_2_result = predict_e7_image(
+            selected_image, model=phase_2_model, config=phase_2_config
+        )
+        result_view = select_result_view(phase_2_result["detected_conditions"])
+
+        st.divider()
+        if result_view == "one_condition":
+            phase_1_model, phase_1_config = get_phase_1_artifacts()
+            phase_1_result = predict_e8_image(
+                selected_image, model=phase_1_model, config=phase_1_config
+            )
             st.subheader("Phase 1 — one main road condition")
             st.metric(
                 phase_1_result["prediction"]["condition"],
                 f"{phase_1_result['prediction']['probability']:.1%} confidence",
             )
-            st.caption("Phase 1 always chooses one class: the most likely of its seven classes.")
-
+            st.caption(
+                "Phase 2 found zero or one condition at its locked thresholds, so the app shows "
+                "the Phase 1 single-class result. A person must still confirm it."
+            )
+        else:
             st.subheader("Phase 2 — all detected road conditions")
             detected = phase_2_result["detected_conditions"]
-            if detected:
-                st.warning("Detected: " + ", ".join(detected))
-            else:
-                st.success("No Phase 2 condition reached its locked threshold.")
+            st.warning("Detected: " + ", ".join(detected))
             st.dataframe(
                 [
                     {
@@ -119,10 +145,12 @@ if uploaded_image is not None:
                 hide_index=True,
                 use_container_width=True,
             )
-            st.info(
-                "The two phases answer different questions. Phase 1 must select one main class; "
-                "Phase 2 can select several. A qualified person must confirm every result."
+            st.caption(
+                "Two or more Phase 2 conditions met their locked thresholds, so the app shows only "
+                "the multi-condition result. A person must still confirm it."
             )
+    except (FileNotFoundError, ValueError, ImportError) as exc:
+        st.error(str(exc))
 
 st.divider()
 st.subheader("Important limitation")
