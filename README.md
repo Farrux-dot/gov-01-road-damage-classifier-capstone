@@ -1,5 +1,20 @@
 # GOV-01 Road Damage Image Classifier
 
+## Current V2 multi-label model
+
+The current GOV-01 model is `E7`, which independently checks a road image for seven conditions: crack, pothole, repaired road, manhole cover, unpaved road, road marking, and speed bump.
+
+- Final protected-test masked macro F1: `0.881724` on 3,978 expansion-test images.
+- Final protected-test masked label accuracy: `0.911323`.
+- Final evidence and limitations: [V2 multi-label final results](docs/V2_MULTILABEL_FINAL_RESULTS.md).
+- Local one-image prediction: `python -m src.v2_multilabel_e7_inference --model-path artifacts/e7_focused_best.keras --image C:/path/to/road.jpg`.
+
+The private `e7_focused_best.keras` file is not committed to GitHub. It must be extracted from the E7 output ZIP and kept in `artifacts/` locally. The tracked [E7 configuration](artifacts/v2_multilabel_e7_config.json) preserves its 320×320 input rule and per-condition thresholds.
+
+## Earlier binary demo
+
+The binary Normal/Pothole model and Streamlit demo below are retained as earlier project evidence. They are not the current V2 multi-label model.
+
 This AI/ML capstone project classifies one submitted road image as `Normal` or `Pothole`. It supports municipal report triage only. It does **not** assess pothole danger, physical size, road safety, repair cost, or repair priority.
 
 ## Final model result

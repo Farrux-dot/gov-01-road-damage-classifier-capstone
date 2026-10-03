@@ -48,3 +48,18 @@ print(label, probability)
 - A known training image produced the same `Pothole` probability before and after reload: `0.907272`.
 - The absolute probability difference was `0.0`; the reload proof passed.
 - See `reload_proof.md` and `reports/mobilenetv2_frozen_v4_reload_proof.png`.
+
+## V2 multi-label E7 artifact
+
+The final V2 multi-label model is a separate artifact; it does not replace the older binary demo above.
+
+| File | Purpose | Git status |
+|---|---|---|
+| `e7_focused_best.keras` | Final seven-condition E7 model. Extract it from the private E7 output ZIP. | Ignored: private generated binary. |
+| `v2_multilabel_e7_config.json` | Locked image size, condition order, thresholds, and final-test summary. | Tracked. |
+
+- Input: one RGB road image resized to `320 x 320` pixels.
+- Output: an independent probability for each of crack, pothole, repaired road, manhole cover, unpaved road, road marking, and speed bump.
+- Thresholds: condition-specific values selected on validation before the protected test.
+- Use: `python -m src.v2_multilabel_e7_inference --model-path artifacts/e7_focused_best.keras --image C:/path/to/road.jpg`.
+- Limit: this is report-triage support only; human inspection remains required.

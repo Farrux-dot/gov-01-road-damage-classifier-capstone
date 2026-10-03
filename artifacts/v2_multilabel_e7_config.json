@@ -1,0 +1,31 @@
+{
+  "artifact_name": "v2_multilabel_e7_focused_mobilenetv2_320",
+  "model_file": "e7_focused_best.keras",
+  "task": "Multi-label road-condition classification",
+  "conditions": [
+    {"id": "crack", "display_name": "Crack", "threshold": 0.46},
+    {"id": "pothole", "display_name": "Pothole", "threshold": 0.46},
+    {"id": "repaired_road", "display_name": "Repaired road", "threshold": 0.56},
+    {"id": "manhole_cover", "display_name": "Manhole cover", "threshold": 0.49},
+    {"id": "unpaved_road", "display_name": "Unpaved road", "threshold": 0.71},
+    {"id": "road_marking", "display_name": "Road marking", "threshold": 0.5},
+    {"id": "speed_bump", "display_name": "Speed bump", "threshold": 0.5}
+  ],
+  "input_image": {
+    "color_mode": "RGB",
+    "image_size": [320, 320]
+  },
+  "inference_preprocessing": "Embedded MobileNetV2 preprocessing in the saved model; resize and RGB conversion only in the prediction script.",
+  "prediction_policy": {
+    "report_all_scores": true,
+    "detection_rule": "A condition is detected when its score is greater than or equal to its locked threshold.",
+    "unknown_labels": "Unknown labels were excluded from evaluation; the script does not infer missing source labels."
+  },
+  "final_protected_test": {
+    "image_count": 3978,
+    "masked_macro_f1": 0.8817236473562492,
+    "masked_label_accuracy": 0.9113231269876488,
+    "test_was_not_used_for_training_or_tuning": true
+  },
+  "operational_limit": "Predictions support report triage only. A qualified human must confirm every road condition; the model does not determine severity, danger, repair priority, cost, or road safety."
+}
