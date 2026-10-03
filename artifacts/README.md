@@ -49,7 +49,21 @@ print(label, probability)
 - The absolute probability difference was `0.0`; the reload proof passed.
 - See `reload_proof.md` and `reports/mobilenetv2_frozen_v4_reload_proof.png`.
 
-## V2 multi-label E7 artifact
+## V2 Phase 1 multi-class E8 artifact
+
+The final Phase 1 model selects exactly one main road condition.
+
+| File | Purpose | Git status |
+|---|---|---|
+| `v2_e8_efficientnetb0_low_lr_best.keras` | Final seven-class E8 EfficientNetB0 model. Extract it from `v2_e8_output.zip`. | Ignored: generated binary. |
+| `v2_multiclass_e8_config.json` | Locked class order, 224×224 input rule, and protected-test summary. | Tracked. |
+
+- Classes: crack, manhole cover, normal asphalt, pothole, repaired road, speed bump, and unpaved road.
+- Final protected-test macro F1: `0.890034` on 1,654 images.
+- Use: `python -c "from src.v2_multiclass_e8_inference import predict_e8_from_artifacts; print(predict_e8_from_artifacts('road.jpg', model_path='artifacts/v2_e8_efficientnetb0_low_lr_best.keras', config_path='artifacts/v2_multiclass_e8_config.json'))"`.
+- Limit: it always chooses one class, even if a scene has more than one visible condition.
+
+## V2 Phase 2 multi-label E7 artifact
 
 The final V2 multi-label model is a separate artifact; it does not replace the older binary demo above.
 

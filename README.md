@@ -1,8 +1,21 @@
 # GOV-01 Road Damage Image Classifier
 
-## Current V2 multi-label model
+## Current V2 models: Phase 1 and Phase 2
 
-The current GOV-01 model is `E7`, which independently checks a road image for seven conditions: crack, pothole, repaired road, manhole cover, unpaved road, road marking, and speed bump.
+The deployed GOV-01 app checks each uploaded road image with two separate locked models:
+
+- **Phase 1 — multi-class E8:** chooses one main class from crack, manhole cover, normal asphalt, pothole, repaired road, speed bump, and unpaved road.
+- **Phase 2 — multi-label E7:** independently checks for crack, pothole, repaired road, manhole cover, unpaved road, road marking, and speed bump. It may return more than one condition.
+
+Phase 3 object/damage-area detection is not implemented yet.
+
+### Phase 1: multi-class E8
+
+- Final protected-test macro F1: `0.890034` on 1,654 protected-test images.
+- Final protected-test accuracy: `0.874849`.
+- Its seven-class order and 224×224 input rule are in [the E8 configuration](artifacts/v2_multiclass_e8_config.json).
+
+### Phase 2: multi-label E7
 
 - Final protected-test masked macro F1: `0.881724` on 3,978 expansion-test images.
 - Final protected-test masked label accuracy: `0.911323`.
@@ -37,15 +50,15 @@ See [reports/model_gate.md](reports/model_gate.md) for the full evidence, errors
 - [Defense deck map](presentation/DEFENSE_DECK_MAP.md)
 - [Defense Q&A bank](presentation/Q_AND_A_BANK.md)
 
-## Local Streamlit demo
+## Local Streamlit app: Phase 1 and Phase 2
 
-The app is a local deployment route for one new road image. It loads the saved model and predicts; it never trains a model.
+The app is a local deployment route for one new road image. It runs both locked models on the same image and never trains a model.
 
 ### Before running
 
-1. Keep your privately downloaded model file named `mobilenetv2_frozen_v4.keras`.
-2. Copy it into the local `artifacts/` folder beside `mobilenetv2_frozen_v4_config.json`.
-3. Do not commit the `.keras` file or any private image to GitHub.
+1. Keep `v2_e8_efficientnetb0_low_lr_best.keras` and `e7_focused_best.keras` in the local `artifacts/` folder.
+2. Keep the tracked JSON configuration files beside those models.
+3. Do not commit `.keras` model files or private road images to GitHub.
 
 ### Run the demo
 
@@ -54,11 +67,16 @@ python -m pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Then open the local URL displayed by Streamlit, upload a PNG or JPEG road image, and select **Classify image**.
+Then open the local URL displayed by Streamlit, upload a PNG or JPEG road image, and select **Analyze road image**.
 
 ### Public Streamlit deployment
 
-The public app downloads the final model from the public Hugging Face model repository `FF2050/gov-01-road-damage-classifier-model`. No Streamlit secret is required. The raw dataset is not included in the app or this repository.
+The public app downloads these two model files from the Hugging Face model repository `FF2050/gov-01-road-damage-classifier-model`:
+
+- `v2_e8_efficientnetb0_low_lr_best.keras` for Phase 1.
+- `e7_focused_best.keras` for Phase 2.
+
+No Streamlit secret is required. The raw dataset is not included in the app or this repository.
 
 Do not commit the `.keras` file to this GitHub repository. The app also supports the existing local route: copy the model into `artifacts/` and run Streamlit normally.
 
@@ -75,11 +93,11 @@ The script checks that the saved model loads and produces a valid probability. I
 ## Repository structure
 
 ```text
-app.py                     # Streamlit user interface
-src/inference.py           # image validation, loading, and prediction logic
+app.py                     # one-upload Phase 1 + Phase 2 Streamlit interface
+src/v2_multiclass_e8_inference.py # Phase 1 one-class inference logic
+src/v2_multilabel_e7_inference.py # Phase 2 multi-label inference logic
 artifacts/                 # tracked configuration; local .keras model is ignored
-smoke_test.py              # local pre-demo check
-tests/test_inference.py    # small inference-logic tests
+tests/                     # small inference-logic tests
 reports/model_gate.md      # model selection and final evaluation evidence
 ```
 

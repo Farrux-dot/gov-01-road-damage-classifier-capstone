@@ -1,60 +1,66 @@
-"""Local Streamlit demo for the locked GOV-01 pothole classifier."""
+"""One-upload Streamlit interface for GOV-01 Phases 1 and 2."""
 
 from pathlib import Path
 
 import streamlit as st
 
-from src.inference import load_artifact_config, load_saved_model, predict_image
+from src.v2_multiclass_e8_inference import load_e8_config, load_e8_model, predict_e8_image
+from src.v2_multilabel_e7_inference import load_e7_config, load_e7_model, predict_e7_image
 
 
 ROOT = Path(__file__).resolve().parent
-MODEL_PATH = ROOT / "artifacts" / "mobilenetv2_frozen_v4.keras"
-CONFIG_PATH = ROOT / "artifacts" / "mobilenetv2_frozen_v4_config.json"
+PHASE_1_MODEL_PATH = ROOT / "artifacts" / "v2_e8_efficientnetb0_low_lr_best.keras"
+PHASE_1_CONFIG_PATH = ROOT / "artifacts" / "v2_multiclass_e8_config.json"
+PHASE_2_MODEL_PATH = ROOT / "artifacts" / "e7_focused_best.keras"
+PHASE_2_CONFIG_PATH = ROOT / "artifacts" / "v2_multilabel_e7_config.json"
 HF_MODEL_REPOSITORY = "FF2050/gov-01-road-damage-classifier-model"
-HF_MODEL_FILENAME = "mobilenetv2_frozen_v4.keras"
 
 st.set_page_config(
-    page_title="GOV-01 Road Damage Classifier",
+    page_title="GOV-01 Road Condition Checker",
     layout="centered",
 )
 
 
-@st.cache_resource(show_spinner="Loading the saved V4 model...")
-def get_artifacts():
-    """Load model and configuration once for the current Streamlit process."""
-    config = load_artifact_config(CONFIG_PATH)
-
-    # Local use keeps working when the private model file is beside the app.
-    if MODEL_PATH.is_file():
-        return load_saved_model(MODEL_PATH), config
-
-    # The public deployment downloads the public model artifact. No token or
-    # Streamlit Secret is needed; the raw dataset remains outside this app.
+def _local_or_hosted_model(local_path: Path, filename: str) -> Path:
+    """Use a local artifact for development or download the published artifact."""
+    if local_path.is_file():
+        return local_path
     from huggingface_hub import hf_hub_download
     try:
-        downloaded_model = hf_hub_download(
+        return Path(hf_hub_download(
             repo_id=HF_MODEL_REPOSITORY,
-            filename=HF_MODEL_FILENAME,
-        )
+            filename=filename,
+        ))
     except Exception as exc:
         raise FileNotFoundError(
-            "The public model file could not be downloaded from Hugging Face "
+            f"The published model file '{filename}' could not be downloaded "
             f"({type(exc).__name__})."
         ) from exc
 
-    return load_saved_model(downloaded_model), config
+
+@st.cache_resource(show_spinner="Loading Phase 1: one main class...")
+def get_phase_1_artifacts():
+    config = load_e8_config(PHASE_1_CONFIG_PATH)
+    return load_e8_model(_local_or_hosted_model(PHASE_1_MODEL_PATH, config["model_file"])), config
 
 
-st.title("GOV-01 Road Damage Classifier")
-st.caption("Local demo: one road image -> Normal or Pothole")
+@st.cache_resource(show_spinner="Loading Phase 2: all road conditions...")
+def get_phase_2_artifacts():
+    config = load_e7_config(PHASE_2_CONFIG_PATH)
+    return load_e7_model(_local_or_hosted_model(PHASE_2_MODEL_PATH, config["model_file"])), config
+
+
+st.title("GOV-01 Road Condition Checker")
+st.caption("One uploaded road image → Phase 1 and Phase 2 results")
 
 st.info(
-    "This demo loads the final saved model and predicts one new image. "
-    "It does not train or change the model."
+    "One image is checked by two locked models. The app only predicts; it does not train, "
+    "change thresholds, or alter either model."
 )
 
 try:
-    model, config = get_artifacts()
+    phase_1_model, phase_1_config = get_phase_1_artifacts()
+    phase_2_model, phase_2_config = get_phase_2_artifacts()
 except (FileNotFoundError, ValueError) as exc:
     st.error(str(exc))
     st.stop()
@@ -72,34 +78,57 @@ if uploaded_image is not None:
         width=240,
     )
     st.caption(
-        "This educational dataset contains low-resolution 64 x 64 pixel images. "
-        "The compact preview avoids enlarging the image beyond its original detail."
+        "This preview is only for checking the selected image."
     )
 
-    if st.button("Classify image", type="primary", use_container_width=True):
+    if st.button("Analyze road image", type="primary", use_container_width=True):
         try:
-            result = predict_image(uploaded_image, model=model, config=config)
+            phase_1_result = predict_e8_image(
+                uploaded_image, model=phase_1_model, config=phase_1_config
+            )
+            phase_2_result = predict_e7_image(
+                uploaded_image, model=phase_2_model, config=phase_2_config
+            )
         except ValueError as exc:
             st.error(str(exc))
         else:
             st.divider()
-            st.subheader("Prediction result")
-            left, right = st.columns(2)
-            left.metric("Prediction", result["label"])
-            right.metric(
-                "Pothole probability",
-                f"{result['pothole_probability']:.1%}",
+            st.subheader("Phase 1 — one main road condition")
+            st.metric(
+                phase_1_result["prediction"]["condition"],
+                f"{phase_1_result['prediction']['probability']:.1%} confidence",
             )
+            st.caption("Phase 1 always chooses one class: the most likely of its seven classes.")
 
-            if result["label"] == "Pothole":
-                st.warning("Potential pothole detected. Send this report for human review.")
+            st.subheader("Phase 2 — all detected road conditions")
+            detected = phase_2_result["detected_conditions"]
+            if detected:
+                st.warning("Detected: " + ", ".join(detected))
             else:
-                st.success("No pothole detected by the model. Human review is still required.")
+                st.success("No Phase 2 condition reached its locked threshold.")
+            st.dataframe(
+                [
+                    {
+                        "Condition": score["condition"],
+                        "Probability": f"{score['probability']:.1%}",
+                        "Threshold": f"{score['threshold']:.0%}",
+                        "Detected": "Yes" if score["detected"] else "No",
+                    }
+                    for score in phase_2_result["scores"]
+                ],
+                hide_index=True,
+                use_container_width=True,
+            )
+            st.info(
+                "The two phases answer different questions. Phase 1 must select one main class; "
+                "Phase 2 can select several. A qualified person must confirm every result."
+            )
 
 st.divider()
 st.subheader("Important limitation")
 st.write(
-    "The model detects pothole presence only. It does not determine pothole "
-    "danger, physical size, severity, repair cost, or repair priority."
+    "These image-classification models support report triage only. They do not determine "
+    "physical size, severity, danger, repair cost, repair priority, or road safety. "
+    "Phase 3 area outlines are not available yet."
 )
-st.caption("Selected model: mobilenetv2_frozen_v4 | Decision threshold: 0.5")
+st.caption("Phase 1: V2-E8 EfficientNetB0 | Phase 2: locked V2 multi-label E7")

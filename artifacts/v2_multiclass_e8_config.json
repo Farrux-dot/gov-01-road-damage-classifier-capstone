@@ -1,0 +1,28 @@
+{
+  "artifact_name": "v2_multiclass_e8_efficientnetb0_low_lr",
+  "model_file": "v2_e8_efficientnetb0_low_lr_best.keras",
+  "input_image": {
+    "color_mode": "RGB",
+    "image_size": [224, 224]
+  },
+  "classes": [
+    {"id": "crack", "display_name": "Crack"},
+    {"id": "manhole_cover", "display_name": "Manhole cover"},
+    {"id": "normal_asphalt", "display_name": "Normal asphalt"},
+    {"id": "pothole", "display_name": "Pothole"},
+    {"id": "repaired_road", "display_name": "Repaired road"},
+    {"id": "speed_bump", "display_name": "Speed bump"},
+    {"id": "unpaved_road", "display_name": "Unpaved road"}
+  ],
+  "prediction_policy": {
+    "one_class_only": true,
+    "human_review_required": true
+  },
+  "evaluation": {
+    "split": "protected_test",
+    "image_count": 1654,
+    "accuracy": 0.8748488512696493,
+    "macro_f1": 0.8900340966586056
+  },
+  "operational_limit": "Predictions support report triage only. A qualified human must confirm every road condition; the model does not determine severity, danger, repair priority, cost, or road safety."
+}
